@@ -17,23 +17,25 @@ socket.on('new player', (connectionID, color) => {
 });
 
 socket.on('player sync', (connections)=> {
-    console.log(connections);
+    console.log('CURRENT CONNECTIONS: ', connections);
     
-    connections.forEach( (connection)=> {
-        
-        
-        players = players.filter(obj => {
-            return obj.madePlayer == true;
+    players = connections.filter(obj => {
+        return obj.madePlayer == true;
+    });
+
+
+    console.log(players)
+    players.forEach( (player)=> {
+        createOtherPlayer(player.id, player.playerColor);
+
+        selectedPlayer = players.filter(obj => {
+            return obj.name == player.id;
         });
-        console.log(players)
-        players.forEach( (player)=> {
-            player[0].position.x = connection.Xposition;
-            player[0].position.y = connection.Yposition;
-            
-            createOtherPlayer(player.id, player.playerColor);
-        } )
-        
-    })
+        selectedPlayer[0].position.x = player.Xposition;
+        selectedPlayer[0].position.y = player.Yposition;
+    });
+    
+    
 
     
     

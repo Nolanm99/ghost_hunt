@@ -41,7 +41,7 @@ io.on('connection', socket => {
         });
         connectionFilter[0].madePlayer = true;
         connectionFilter[0].playerColor = color;
-        connectionFilter[0].Xposition = 0;
+        connectionFilter[0].Xposition = 0
         connectionFilter[0].Yposition = 0;
     });
 
