@@ -1,5 +1,4 @@
 const socket = io();
-const canvas = document.querySelector('canvas');
 const newPlayerBtn = document.getElementById('newPlayerBtn');
 const PLAYER_CREATION_LIMIT = 1;
 const SPHERE_RADIUS = 10;
@@ -64,13 +63,12 @@ socket.on('player movement', (connectionID, Xposition, Yposition)=> {
 
 //SCENE AND RENDERER SETUP
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('white');
+scene.background = new THREE.Color('grey');
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer( {canvas: sceneCanvas} );
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-document.body.appendChild(renderer.domElement);
 
 function selfCreatePlayer() {
     if(selfPlayersCreated < PLAYER_CREATION_LIMIT) {
@@ -157,7 +155,7 @@ function animate() {
         }
         if (window.Spressed) {
             selfPlayer[0].position.y -= PLAYER_VELOCITY;
-            socket.emit('player movement', socket.id, 3) //1 = down
+            socket.emit('player movement', socket.id, 3) //3 = down
         }
         if (window.Dpressed) {
             selfPlayer[0].position.x += PLAYER_VELOCITY;
@@ -210,6 +208,7 @@ document.addEventListener("keyup", onDocumentKeyUp, false);
 
 newPlayerBtn.addEventListener('click', () => {
     selfCreatePlayer();
+    newPlayerBtn.style.display = "none";
 })
 
 
