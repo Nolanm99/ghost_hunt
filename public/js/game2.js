@@ -18,13 +18,11 @@ socket.on('new player', (connectionID, color) => {
 
 socket.on('player sync', (connections)=> {
     console.log('CURRENT CONNECTIONS: ', connections);
-    
+
     players = connections.filter(obj => {
         return obj.madePlayer == true;
     });
 
-
-    console.log(players)
     players.forEach( (player)=> {
         createOtherPlayer(player.id, player.playerColor);
 
@@ -34,11 +32,6 @@ socket.on('player sync', (connections)=> {
         selectedPlayer[0].position.x = player.Xposition;
         selectedPlayer[0].position.y = player.Yposition;
     });
-    
-    
-
-    
-    
 })
 
 socket.on('player disconnect', connectionID => {
@@ -56,10 +49,10 @@ socket.on('player movement', (connectionID, Xposition, Yposition)=> {
     player = players.filter(obj => {
         return obj.name == connectionID;
     })
-    
+
     player[0].position.x = Xposition;
     player[0].position.y = Yposition;
-    
+
 })
 
 //SCENE AND RENDERER SETUP
@@ -76,7 +69,7 @@ function selfCreatePlayer() {
     if(selfPlayersCreated < PLAYER_CREATION_LIMIT) {
         geometry = new THREE.SphereGeometry(SPHERE_RADIUS,10,10);
         color = '#'.concat(Math.floor(Math.random()*16777215).toString(16)); // create material with random color
-        material = new THREE.MeshStandardMaterial( {'color': color} ); 
+        material = new THREE.MeshStandardMaterial( {'color': color} );
         sphere = new THREE.Mesh(geometry, material);
         sphere.position.set(0,0,SPHERE_RADIUS);
         sphere.castShadow = true;
@@ -166,7 +159,7 @@ function animate() {
     }
 
 
-    
+
     renderer.render(scene, camera);
     controls.update();
 }
@@ -214,6 +207,3 @@ newPlayerBtn.addEventListener('click', () => {
 
 
 animate();
-
-
-
