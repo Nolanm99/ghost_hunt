@@ -36,6 +36,7 @@ io.on('connection', socket => {
     console.log('New Connection: ', socket.id);
     connectionList.push(new Connection(socket.id));
     console.log('Current Connections: ', connectionList);
+    console.log('PLAYer LIST: ', playerList);
 
     //Sync with other players (download their positions)
     socket.emit('player sync', playerList);
@@ -50,6 +51,7 @@ io.on('connection', socket => {
     //When a player moves their position
     socket.on('player movement', (connectionID, direction)=> {
         selectedPlayer = playerList.find(obj=>obj.socketID==connectionID);
+
         if(direction == 1) {
             selectedPlayer.Yposition += PLAYER_VELOCITY;
         }
@@ -63,12 +65,7 @@ io.on('connection', socket => {
             selectedPlayer.Xposition += PLAYER_VELOCITY;
         }
 
-        if (Math.abs(connection.Xposition) > 250 || Math.abs(connection.Yposition) > 250) {
-          connection.Xposition = 0;
-          connection.Yposition = 0;
-        }
-
-        socket.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
+        socket.broadcast.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
     });
 
     //When the client disconnects

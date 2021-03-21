@@ -13,7 +13,9 @@ socket.on('message', (message) => {
 })
 
 socket.on('new player', (connectionID, color) => {
-    createOtherPlayer(connectionID, color);
+    createOtherPlayer(connectionID, color, ()=> {
+
+    });
 });
 
 socket.on('player sync', (serverPlayerList)=> {
@@ -21,14 +23,10 @@ socket.on('player sync', (serverPlayerList)=> {
 
     serverPlayerList.forEach( (player)=> { //for every current connection that started the game
         console.log('CURRENT LIST OF PLAYERS (LOCAL): ', players);
-        createOtherPlayer(player.socketID, player.color); //create a local player for them based on the id and color
-        console.log('NEW LIST OF PLAYERS (LOCAL): ', players);
-        selectedPlayer = players.filter(obj => {
-            return obj.socketID == player.socketID;
-        });
-        console.log('Filtered List: ', selectedPlayer);
-        selectedPlayer[0].position.x = player.Xposition;
-        selectedPlayer[0].position.y = player.Yposition;
+        createOtherPlayer(player.socketID, player.color, (selectedPlayer)=> {
+            selectedPlayer.position.x = player.Xposition;
+            selectedPlayer.position.y = player.Yposition;
+        }); //create a local player for them based on the id and color
     });
 })
 
@@ -36,19 +34,19 @@ socket.on('player movement', (connectionID, Xposition, Yposition)=> {
     player = players.filter(obj => {
         return obj.socketID == connectionID;
     })
-    
     player[0].position.x = Xposition;
     player[0].position.y = Yposition;
-    
 })
 
 
 socket.on('player disconnect', connectionID => {
+    console.log('Players: ', players);
     disconnectedPlayer = players.filter(obj => {
-        return obj.name == connectionID;
+        return obj.socketID == connectionID;
     });
+    console.log('disconnected: ', disconnectedPlayer);
     players = players.filter(obj => {
-        return obj.name != connectionID;
+        return obj.socketID != connectionID;
     });
     console.log('DISCONNECTED: ', connectionID);
     scene.remove(disconnectedPlayer[0]);
@@ -72,12 +70,12 @@ function selfCreatePlayer() {
             gltf.scene.traverse((o) => {
                 if (o.name == 'Cube') importedModelMesh = o;
             });
-            gltf.scene.position.z = 12.5;
-            //gltf.scene.castShadow = true;
-            gltf.scene.socketID = socket.id;
-            players.push(gltf.scene);
-            scene.add(gltf.scene);
-            socket.emit('new player', gltf.scene.socketID, color);
+            importedModelMesh.position.z = 12.5;
+            importedModelMesh.castShadow = true;
+            importedModelMesh.socketID = socket.id;
+            players.push(importedModelMesh);
+            scene.add(importedModelMesh);
+            socket.emit('new player', importedModelMesh.socketID, color);
             selfPlayersCreated += 1;
         },
         function(error) {
@@ -89,17 +87,18 @@ function selfCreatePlayer() {
     }
 }
 
-function createOtherPlayer(connectionID, color) {
+function createOtherPlayer(connectionID, color, callback) {
     loader.load('assets/box_joined.glb', function (gltf) {
         modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
         gltf.scene.traverse((o) => {
             if (o.name == 'Cube') importedModelMesh = o;
         });
-        //importedModelMesh.position.z = 12.5;
-        //simportedModelMesh.castShadow = true;
-        gltf.scene.socketID = connectionID;
-        players.push(gltf.scene);
-        scene.add(gltf.scene);
+        importedModelMesh.position.z = 12.5;
+        importedModelMesh.castShadow = true;
+        importedModelMesh.socketID = connectionID;
+        players.push(importedModelMesh);
+        scene.add(importedModelMesh);
+        callback(importedModelMesh);
     });
 }
 
