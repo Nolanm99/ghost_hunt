@@ -7,17 +7,26 @@ const PORT = 3000;
 const server = http.createServer(app);
 const io = socketio(server)
 const PLAYER_VELOCITY = 2;
+
 //Set static folder
 app.use(express.static(path.join(__dirname, 'public')));
-var connections = [];
+app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/examples/js/')))
+var connectionList = [];
+var playerList = [];
+
 
 class Connection {
     constructor(id) {
-        this.id = id;
+        this.socketID = id;
         this.madePlayer = false;
-        this.playerColor = '';
-        this.Xposition = -1;
-        this.Yposition = -1;
+    }
+}
+class Player {
+    constructor(id, color) {
+        this.socketID = id
+        this.color = color;
+        this.Xposition = 0;
+        this.Yposition = 0;
     }
 }
 
@@ -25,50 +34,46 @@ class Connection {
 //On client connection
 io.on('connection', socket => {
     console.log('New Connection: ', socket.id);
-    connection = new Connection(socket.id);
-    connections.push(connection);
-    console.log(Object.keys(io.engine.clients));
+    connectionList.push(new Connection(socket.id));
+    console.log('Current Connections: ', connectionList);
 
     //Sync with other players (download their positions)
-    socket.emit('player sync', connections)
+    socket.emit('player sync', playerList);
 
     //When someone hits the new player button
     socket.on('new player', (connectionID, color)=> {
-        console.log(connectionID, color)
+        console.log('New Player Created: ', connectionID, color)
         socket.broadcast.emit('new player', connectionID, color);
-        connectionFilter = connections.filter(obj => {
-            return obj.id == connectionID;
-        });
-        connectionFilter[0].madePlayer = true;
-        connectionFilter[0].playerColor = color;
-        connectionFilter[0].Xposition = 0
-        connectionFilter[0].Yposition = 0;
+        playerList.push(new Player(connectionID, color));
     });
 
     //When a player moves their position
     socket.on('player movement', (connectionID, direction)=> {
-        connection = connections.find(obj=>obj.id==connectionID);
+        selectedPlayer = playerList.find(obj=>obj.socketID==connectionID);
         if(direction == 1) {
-            connection.Yposition += PLAYER_VELOCITY;
+            selectedPlayer.Yposition += PLAYER_VELOCITY;
         }
         else if(direction == 2) {
-            connection.Xposition -= PLAYER_VELOCITY;
+            selectedPlayer.Xposition -= PLAYER_VELOCITY;
         }
         else if(direction == 3) {
-            connection.Yposition -= PLAYER_VELOCITY;
+            selectedPlayer.Yposition -= PLAYER_VELOCITY;
         }
         else if(direction == 4) {
-            connection.Xposition += PLAYER_VELOCITY;
+            selectedPlayer.Xposition += PLAYER_VELOCITY;
         }
-        socket.broadcast.emit('player movement', connectionID, connection.Xposition, connection.Yposition);
+        socket.broadcast.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
     });
 
     //When the client disconnects
     socket.on('disconnect', ()=> {
         socket.broadcast.emit('player disconnect', socket.id);
         console.log('DISCONNECTED: ', socket.id)
-        connections = connections.filter(obj => {
-            return obj.id != socket.id;
+        connectionList = connectionList.filter(obj => {
+            return obj.socketID != socket.id;
+        });
+        playerList = playerList.filter(obj => {
+            return obj.socketID != socket.id;
         });
     });
     

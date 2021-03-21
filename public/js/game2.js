@@ -3,6 +3,7 @@ const newPlayerBtn = document.getElementById('newPlayerBtn');
 const PLAYER_CREATION_LIMIT = 1;
 const SPHERE_RADIUS = 10;
 const PLAYER_VELOCITY = 2;
+const loader = new THREE.GLTFLoader();
 var selfPlayersCreated = 0;
 var players = [];
 var selfPlayersIndex = -1;
@@ -15,30 +16,32 @@ socket.on('new player', (connectionID, color) => {
     createOtherPlayer(connectionID, color);
 });
 
-socket.on('player sync', (connections)=> {
-    console.log('CURRENT CONNECTIONS: ', connections);
-    
-    players = connections.filter(obj => {
-        return obj.madePlayer == true;
-    });
+socket.on('player sync', (serverPlayerList)=> {
+    console.log('Server Player List: ', serverPlayerList);
 
-
-    console.log(players)
-    players.forEach( (player)=> {
-        createOtherPlayer(player.id, player.playerColor);
-
+    serverPlayerList.forEach( (player)=> { //for every current connection that started the game
+        console.log('CURRENT LIST OF PLAYERS (LOCAL): ', players);
+        createOtherPlayer(player.socketID, player.color); //create a local player for them based on the id and color
+        console.log('NEW LIST OF PLAYERS (LOCAL): ', players);
         selectedPlayer = players.filter(obj => {
-            return obj.name == player.id;
+            return obj.socketID == player.socketID;
         });
+        console.log('Filtered List: ', selectedPlayer);
         selectedPlayer[0].position.x = player.Xposition;
         selectedPlayer[0].position.y = player.Yposition;
     });
-    
-    
+})
 
+socket.on('player movement', (connectionID, Xposition, Yposition)=> {
+    player = players.filter(obj => {
+        return obj.socketID == connectionID;
+    })
     
+    player[0].position.x = Xposition;
+    player[0].position.y = Yposition;
     
 })
+
 
 socket.on('player disconnect', connectionID => {
     disconnectedPlayer = players.filter(obj => {
@@ -51,15 +54,6 @@ socket.on('player disconnect', connectionID => {
     scene.remove(disconnectedPlayer[0]);
 })
 
-socket.on('player movement', (connectionID, Xposition, Yposition)=> {
-    player = players.filter(obj => {
-        return obj.name == connectionID;
-    })
-    
-    player[0].position.x = Xposition;
-    player[0].position.y = Yposition;
-    
-})
 
 //SCENE AND RENDERER SETUP
 const scene = new THREE.Scene();
@@ -72,18 +66,23 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 function selfCreatePlayer() {
     if(selfPlayersCreated < PLAYER_CREATION_LIMIT) {
-        geometry = new THREE.SphereGeometry(SPHERE_RADIUS,10,10);
         color = '#'.concat(Math.floor(Math.random()*16777215).toString(16)); // create material with random color
-        material = new THREE.MeshStandardMaterial( {'color': color} ); 
-        sphere = new THREE.Mesh(geometry, material);
-        sphere.position.set(0,0,SPHERE_RADIUS);
-        sphere.castShadow = true;
-        sphere.name = socket.id;
-        players.push(sphere);
-        selfPlayersIndex = players.length - 1
-        scene.add(players[players.length - 1])
-        socket.emit('new player', sphere.name, color  );
-        selfPlayersCreated += 1;
+        loader.load('assets/box_joined.glb', function (gltf) {
+            modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
+            gltf.scene.traverse((o) => {
+                if (o.name == 'Cube') importedModelMesh = o;
+            });
+            gltf.scene.position.z = 12.5;
+            //gltf.scene.castShadow = true;
+            gltf.scene.socketID = socket.id;
+            players.push(gltf.scene);
+            scene.add(gltf.scene);
+            socket.emit('new player', gltf.scene.socketID, color);
+            selfPlayersCreated += 1;
+        },
+        function(error) {
+            console.log('Error loading in model.')
+        });
     }
     else {
         console.log('You have already created a player!')
@@ -91,14 +90,17 @@ function selfCreatePlayer() {
 }
 
 function createOtherPlayer(connectionID, color) {
-    geometry = new THREE.SphereGeometry(SPHERE_RADIUS,10,10);
-    material = new THREE.MeshStandardMaterial( {'color': color} );
-    sphere = new THREE.Mesh(geometry, material);
-    sphere.position.set(0,0,SPHERE_RADIUS);
-    sphere.castShadow = true;
-    sphere.name = connectionID;
-    players.push(sphere);
-    scene.add(players[players.length - 1])
+    loader.load('assets/box_joined.glb', function (gltf) {
+        modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
+        gltf.scene.traverse((o) => {
+            if (o.name == 'Cube') importedModelMesh = o;
+        });
+        //importedModelMesh.position.z = 12.5;
+        //simportedModelMesh.castShadow = true;
+        gltf.scene.socketID = connectionID;
+        players.push(gltf.scene);
+        scene.add(gltf.scene);
+    });
 }
 
 //PLANE
@@ -128,7 +130,7 @@ controls.dynamicDampingFactor = 0.3;
 const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.3);
 scene.add(ambientLight);
 const directionalLight = new THREE.SpotLight(0xFFFFFF,0.7);
-directionalLight.position.set(0,0,250);
+directionalLight.position.set(200,0,300);
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
@@ -142,7 +144,7 @@ scene.add( helper );
 function animate() {
     requestAnimationFrame(animate);
     selfPlayer = players.filter(obj => {
-        return obj.name == socket.id;
+        return obj.socketID == socket.id;
     });
     if (selfPlayersCreated > 0) {
         if (window.Wpressed) {
