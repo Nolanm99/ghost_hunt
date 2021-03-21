@@ -166,7 +166,7 @@ function animate() {
     }
 
 
-    
+
     renderer.render(scene, camera);
     controls.update();
 }
@@ -215,6 +215,3 @@ newPlayerBtn.addEventListener('click', () => {
 
 
 animate();
-
-
-

@@ -62,7 +62,13 @@ io.on('connection', socket => {
         else if(direction == 4) {
             selectedPlayer.Xposition += PLAYER_VELOCITY;
         }
-        socket.broadcast.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
+
+        if (Math.abs(connection.Xposition) > 250 || Math.abs(connection.Yposition) > 250) {
+          connection.Xposition = 0;
+          connection.Yposition = 0;
+        }
+
+        socket.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
     });
 
     //When the client disconnects
@@ -76,7 +82,7 @@ io.on('connection', socket => {
             return obj.socketID != socket.id;
         });
     });
-    
+
 });
 
 server.listen(PORT, "0.0.0.0", ()=> {
