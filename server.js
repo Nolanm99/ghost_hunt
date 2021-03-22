@@ -27,6 +27,7 @@ class Player {
         this.color = color;
         this.Xposition = 0;
         this.Yposition = 0;
+        this.flashLightStatus = false;
     }
 }
 
@@ -66,6 +67,13 @@ io.on('connection', socket => {
         }
 
         socket.broadcast.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
+    });
+
+    socket.on('player flashlight toggle', (socketID, status)=> {
+        console.log('Player toggled flashlight: ', socketID)
+        selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
+        selectedPlayer.flashLightStatus = !selectedPlayer.flashLightStatus;
+        socket.broadcast.emit('player flashlight toggle', socketID, status)
     });
 
     //When the client disconnects

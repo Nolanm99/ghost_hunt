@@ -6,6 +6,7 @@ const PLAYER_VELOCITY = 2;
 const loader = new THREE.GLTFLoader();
 var selfPlayersCreated = 0;
 var players = [];
+var playersFlashlights = [];
 var selfPlayersIndex = -1;
 
 socket.on('message', (message) => {
@@ -19,14 +20,13 @@ socket.on('new player', (connectionID, color) => {
 });
 
 socket.on('player sync', (serverPlayerList)=> {
-    console.log('Server Player List: ', serverPlayerList);
-
     serverPlayerList.forEach( (player)=> { //for every current connection that started the game
-        console.log('CURRENT LIST OF PLAYERS (LOCAL): ', players);
-        createOtherPlayer(player.socketID, player.color, (selectedPlayer)=> {
-            selectedPlayer.position.x = player.Xposition;
-            selectedPlayer.position.y = player.Yposition;
-        }); //create a local player for them based on the id and color
+        createOtherPlayer(player.socketID, player.color, (importedCube, importedCone)=> {
+            importedCube.position.x = player.Xposition;
+            importedCube.position.y = player.Yposition;
+            importedCone.position.y = player.Yposition;
+            importedCone.position.y = player.Yposition;
+        });
     });
 })
 
@@ -34,17 +34,26 @@ socket.on('player movement', (connectionID, Xposition, Yposition)=> {
     player = players.filter(obj => {
         return obj.socketID == connectionID;
     })
+    flashlight = playersFlashlights.filter(obj => {
+        return obj.socketID == connectionID;
+    })
     player[0].position.x = Xposition;
     player[0].position.y = Yposition;
+    flashlight[0].position.x = Xposition + 37.5;
+    flashlight[0].position.y = Yposition;
 })
 
+socket.on('player flashlight toggle', (socketID, status)=> {
+    selfFlashLight = playersFlashlights.filter(obj => { 
+        return obj.socketID == socketID;
+    });
+    selfFlashLight[0].visible = status;
+});
 
 socket.on('player disconnect', connectionID => {
-    console.log('Players: ', players);
     disconnectedPlayer = players.filter(obj => {
         return obj.socketID == connectionID;
     });
-    console.log('disconnected: ', disconnectedPlayer);
     players = players.filter(obj => {
         return obj.socketID != connectionID;
     });
@@ -65,22 +74,26 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 function selfCreatePlayer() {
     if(selfPlayersCreated < PLAYER_CREATION_LIMIT) {
         color = '#'.concat(Math.floor(Math.random()*16777215).toString(16)); // create material with random color
-        loader.load('assets/box_joined.glb', function (gltf) {
+        loader.load('assets/box.glb', function (gltf) {
             modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
+            console.log(gltf.scene);
             gltf.scene.traverse((o) => {
-                if (o.name == 'Cube') importedModelMesh = o;
+                console.log(o.name)
+                if (o.name == 'Cube') importedCube = o;
+                if (o.name == 'Cone') importedCone = o;
             });
-            importedModelMesh.position.z = 12.5;
-            importedModelMesh.castShadow = true;
-            importedModelMesh.socketID = socket.id;
-            players.push(importedModelMesh);
-            scene.add(importedModelMesh);
-            socket.emit('new player', importedModelMesh.socketID, color);
+            importedCube.position.z = 12.5;
+            importedCone.position.z = 12.5;
+            importedCube.castShadow = true;
+            importedCube.socketID = socket.id;
+            importedCone.socketID = socket.id;
+            players.push(importedCube);
+            playersFlashlights.push(importedCone);
+            scene.add(importedCube);
+            scene.add(importedCone);
+            socket.emit('new player', importedCube.socketID, color);
             selfPlayersCreated += 1;
-        },
-        function(error) {
-            console.log('Error loading in model.')
-        });
+        })
     }
     else {
         console.log('You have already created a player!')
@@ -88,17 +101,22 @@ function selfCreatePlayer() {
 }
 
 function createOtherPlayer(connectionID, color, callback) {
-    loader.load('assets/box_joined.glb', function (gltf) {
+    loader.load('assets/box.glb', function (gltf) {
         modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
         gltf.scene.traverse((o) => {
-            if (o.name == 'Cube') importedModelMesh = o;
+            if (o.name == 'Cube') importedCube = o;
+            if (o.name == 'Cone') importedCone = o;
         });
-        importedModelMesh.position.z = 12.5;
-        importedModelMesh.castShadow = true;
-        importedModelMesh.socketID = connectionID;
-        players.push(importedModelMesh);
-        scene.add(importedModelMesh);
-        callback(importedModelMesh);
+        importedCube.position.z = 12.5;
+        importedCone.position.z = 12.5;
+        importedCube.castShadow = true;
+        importedCube.socketID = connectionID;
+        importedCone.socketID = connectionID;
+        players.push(importedCube);
+        playersFlashlights.push(importedCone);
+        scene.add(importedCube);
+        scene.add(importedCone);
+        callback(importedCube, importedCone);
     });
 }
 
@@ -145,22 +163,34 @@ function animate() {
     selfPlayer = players.filter(obj => {
         return obj.socketID == socket.id;
     });
+    selfFlashLight = playersFlashlights.filter(obj => { 
+        return obj.socketID == socket.id;
+    });
     if (selfPlayersCreated > 0) {
         if (window.Wpressed) {
             selfPlayer[0].position.y += PLAYER_VELOCITY;
+            selfFlashLight[0].position.y += PLAYER_VELOCITY;
             socket.emit('player movement', socket.id, 1) //1 = up
         }
         if (window.Apressed) {
             selfPlayer[0].position.x -= PLAYER_VELOCITY;
+            selfFlashLight[0].position.x -= PLAYER_VELOCITY;
             socket.emit('player movement', socket.id, 2) //2 = left
         }
         if (window.Spressed) {
             selfPlayer[0].position.y -= PLAYER_VELOCITY;
+            selfFlashLight[0].position.y -= PLAYER_VELOCITY;
             socket.emit('player movement', socket.id, 3) //3 = down
         }
         if (window.Dpressed) {
             selfPlayer[0].position.x += PLAYER_VELOCITY;
+            selfFlashLight[0].position.x += PLAYER_VELOCITY;
             socket.emit('player movement', socket.id, 4) //4 = right
+        }
+        if (window.Spacepressed) {
+            //ADD CODE TO TOGGLE VISIBILITY ON PLAYER FLASHLIGHT
+            selfFlashLight[0].visible = !selfFlashLight[0].visible;
+            socket.emit('player flashlight toggle', socket.id, selfFlashLight[0].visible) //4 = right
         }
     }
 
@@ -201,6 +231,7 @@ function onDocumentKeyUp(event) {
         window.Dpressed = false;
     } else if (keyCode == 32) {
         window.Space_unpressed = true;
+        window.Spacepressed = false;
     }
 };
 
