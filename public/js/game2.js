@@ -52,6 +52,18 @@ socket.on('player flashlight toggle', (socketID, status)=> {
     selfFlashLight[0].visible = status;
 });
 
+socket.on('player rotation', (socketID, newAngle)=> {
+    //console.log('current flashlights: ', playersFlashlights, socketID)
+    player = players.find(obj=>obj.socketID==socketID);
+    flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
+    console.log(flashlight)
+
+    player.rotation.z = newAngle
+    flashlight.rotation.z = newAngle + Math.PI/2;
+    flashlight.position.x = player.position.x + Math.cos(player.rotation.z) * 37.5;
+    flashlight.position.y = player.position.y + Math.sin(player.rotation.z) * 37.5;
+});
+
 socket.on('player disconnect', connectionID => {
     disconnectedPlayer = players.filter(obj => {
         return obj.socketID == connectionID;
@@ -260,6 +272,7 @@ function onMouseMove(event) {
         playerFlashLight.rotation.z = angle + Math.PI/2;
         playerFlashLight.position.x = selfPlayer[0].position.x + Math.cos(selfPlayer[0].rotation.z) * 37.5;
         playerFlashLight.position.y = selfPlayer[0].position.y + Math.sin(selfPlayer[0].rotation.z) * 37.5;
+        socket.emit('player rotation', socket.id, angle)
     }
 }
 

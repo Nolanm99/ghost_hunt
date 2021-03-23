@@ -28,6 +28,7 @@ class Player {
         this.Xposition = 0;
         this.Yposition = 0;
         this.flashLightStatus = false;
+        this.rotationAngle = 0;
     }
 }
 
@@ -72,6 +73,12 @@ io.on('connection', socket => {
         selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
         selectedPlayer.flashLightStatus = !selectedPlayer.flashLightStatus;
         socket.broadcast.emit('player flashlight toggle', socketID, status)
+    });
+
+    socket.on('player rotation', (socketID, newAngle)=> {
+        selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
+        selectedPlayer.rotationAngle = newAngle;
+        socket.broadcast.emit('player rotation', socketID, newAngle);
     });
 
     //When the client disconnects
