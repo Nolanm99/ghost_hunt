@@ -4,6 +4,8 @@ const PLAYER_CREATION_LIMIT = 1;
 const SPHERE_RADIUS = 10;
 const PLAYER_VELOCITY = 2;
 const loader = new THREE.GLTFLoader();
+var mouse = new THREE.Vector2();
+var mouseAngle = 0; 
 var selfPlayersCreated = 0;
 var players = [];
 var playersFlashlights = [];
@@ -76,9 +78,7 @@ function selfCreatePlayer() {
         color = '#'.concat(Math.floor(Math.random()*16777215).toString(16)); // create material with random color
         loader.load('assets/box.glb', function (gltf) {
             modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
-            console.log(gltf.scene);
             gltf.scene.traverse((o) => {
-                console.log(o.name)
                 if (o.name == 'Cube') importedCube = o;
                 if (o.name == 'Cone') importedCone = o;
             });
@@ -87,10 +87,12 @@ function selfCreatePlayer() {
             importedCube.castShadow = true;
             importedCube.socketID = socket.id;
             importedCone.socketID = socket.id;
+            importedCone.visible = false;
             players.push(importedCube);
             playersFlashlights.push(importedCone);
             scene.add(importedCube);
             scene.add(importedCone);
+            importedCube.rotation.z = 0
             socket.emit('new player', importedCube.socketID, color);
             selfPlayersCreated += 1;
         })
@@ -112,6 +114,7 @@ function createOtherPlayer(connectionID, color, callback) {
         importedCube.castShadow = true;
         importedCube.socketID = connectionID;
         importedCone.socketID = connectionID;
+        importedCone.visible = false;
         players.push(importedCube);
         playersFlashlights.push(importedCone);
         scene.add(importedCube);
@@ -132,7 +135,8 @@ plane.receiveShadow = true;
 scene.add(plane);
 
 
-//CONTROLS
+//CONTROLS (disabling for now)
+/*
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.rotateSpeed = 0.5;
 controls.zoomSpeed = 1.2;
@@ -141,7 +145,7 @@ controls.noZoom = false;
 controls.noPan = false;
 controls.staticMoving = true;
 controls.dynamicDampingFactor = 0.3;
-
+*/
 
 //LIGHTING
 const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.3);
@@ -152,9 +156,13 @@ directionalLight.castShadow = true;
 scene.add(directionalLight);
 
 //CAMERA
-camera.position.z = 300;
-const helper = new THREE.CameraHelper( directionalLight.shadow.camera );
-scene.add( helper );
+var raycaster = new THREE.Raycaster();
+camera.position.z = 400;
+camera.position.y = -300;
+camera.lookAt(0,0,0);
+
+//const helper = new THREE.CameraHelper( directionalLight.shadow.camera );
+//scene.add( helper );
 
 
 //ANIMATION LOOP
@@ -188,16 +196,17 @@ function animate() {
             socket.emit('player movement', socket.id, 4) //4 = right
         }
         if (window.Spacepressed) {
-            //ADD CODE TO TOGGLE VISIBILITY ON PLAYER FLASHLIGHT
-            selfFlashLight[0].visible = !selfFlashLight[0].visible;
-            socket.emit('player flashlight toggle', socket.id, selfFlashLight[0].visible) //4 = right
+            selfFlashLight[0].visible = true;
+            socket.emit('player flashlight toggle', socket.id, selfFlashLight[0].visible);
+        }
+        if (window.Space_unpressed) {
+            selfFlashLight[0].visible = false;
+            socket.emit('player flashlight toggle', socket.id, selfFlashLight[0].visible);
         }
     }
-
-
-
+     
     renderer.render(scene, camera);
-    controls.update();
+    //controls.update();
 }
 
 function onDocumentKeyDown(event) {
@@ -212,8 +221,8 @@ function onDocumentKeyDown(event) {
         window.Dpressed = true;
     } else if (keyCode == 32) {
         window.Spacepressed = true;
-    }
-};
+        window.Space_unpressed = false;
+    }};
 
 function onDocumentKeyUp(event) {
     var keyCode = event.keyCode;
@@ -232,11 +241,31 @@ function onDocumentKeyUp(event) {
     } else if (keyCode == 32) {
         window.Space_unpressed = true;
         window.Spacepressed = false;
+    }};
+
+function onMouseMove(event) {
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    raycaster.setFromCamera(mouse.clone(), camera);
+    intersects = raycaster.intersectObjects(scene.children);
+
+    if(players.length > 0) {
+        if (intersects.length > 0) {
+            angle = Math.atan2(intersects[0].point.y, intersects[0].point.x);
+        }
+        player = players.find(obj=>obj.socketID==socket.id);    
+        playerFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
+        player.rotation.z = angle
+        playerFlashLight.rotation.z = angle + Math.PI/2;
+        playerFlashLight.position.x = selfPlayer[0].position.x + Math.cos(selfPlayer[0].rotation.z) * 37.5;
+        playerFlashLight.position.y = selfPlayer[0].position.y + Math.sin(selfPlayer[0].rotation.z) * 37.5;
     }
-};
+}
 
 document.addEventListener("keydown", onDocumentKeyDown, false);
 document.addEventListener("keyup", onDocumentKeyUp, false);
+document.addEventListener("mousemove", onMouseMove, false);
 
 newPlayerBtn.addEventListener('click', () => {
     selfCreatePlayer();

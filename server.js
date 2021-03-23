@@ -37,7 +37,6 @@ io.on('connection', socket => {
     console.log('New Connection: ', socket.id);
     connectionList.push(new Connection(socket.id));
     console.log('Current Connections: ', connectionList);
-    console.log('PLAYer LIST: ', playerList);
 
     //Sync with other players (download their positions)
     socket.emit('player sync', playerList);
@@ -70,7 +69,6 @@ io.on('connection', socket => {
     });
 
     socket.on('player flashlight toggle', (socketID, status)=> {
-        console.log('Player toggled flashlight: ', socketID)
         selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
         selectedPlayer.flashLightStatus = !selectedPlayer.flashLightStatus;
         socket.broadcast.emit('player flashlight toggle', socketID, status)
