@@ -53,10 +53,8 @@ socket.on('player flashlight toggle', (socketID, status)=> {
 });
 
 socket.on('player rotation', (socketID, newAngle)=> {
-    //console.log('current flashlights: ', playersFlashlights, socketID)
     player = players.find(obj=>obj.socketID==socketID);
     flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
-    console.log(flashlight)
 
     player.rotation.z = newAngle
     flashlight.rotation.z = newAngle + Math.PI/2;
