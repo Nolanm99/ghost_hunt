@@ -33,26 +33,21 @@ socket.on('player sync', (serverPlayerList)=> {
 })
 
 socket.on('player movement', (connectionID, Xposition, Yposition)=> {
-    player = players.filter(obj => {
-        return obj.socketID == connectionID;
-    })
-    flashlight = playersFlashlights.filter(obj => {
-        return obj.socketID == connectionID;
-    })
-    player[0].position.x = Xposition;
-    player[0].position.y = Yposition;
-    flashlight[0].position.x = Xposition + 37.5;
-    flashlight[0].position.y = Yposition;
+    player = players.find(obj=>obj.socketID==connectionID);
+    flashlight = playersFlashlights.find(obj=>obj.socketID==connectionID);
+
+    player.position.x = Xposition;
+    player.position.y = Yposition;
+    flashlight.position.x = Xposition + Math.cos(player.rotation.z) * 37.5;
+    flashlight.position.y = Yposition + Math.sin(player.rotation.z) * 37.5;
 })
 
 socket.on('player flashlight toggle', (socketID, status)=> {
-    selfFlashLight = playersFlashlights.filter(obj => { 
-        return obj.socketID == socketID;
-    });
-    selfFlashLight[0].visible = status;
+    flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
+    flashlight.visible = status;
 });
 
-socket.on('player rotation', (socketID, newAngle)=> {
+socket.on('player rotation', (socketID, newAngle)=> {   
     player = players.find(obj=>obj.socketID==socketID);
     flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
 
@@ -93,6 +88,7 @@ function selfCreatePlayer() {
                 if (o.name == 'Cone') importedCone = o;
             });
             importedCube.position.z = 12.5;
+            importedCube.material = modelMaterial;
             importedCone.position.z = 12.5;
             importedCube.castShadow = true;
             importedCube.socketID = socket.id;
@@ -120,6 +116,7 @@ function createOtherPlayer(connectionID, color, callback) {
             if (o.name == 'Cone') importedCone = o;
         });
         importedCube.position.z = 12.5;
+        importedCube.material = modelMaterial;
         importedCone.position.z = 12.5;
         importedCube.castShadow = true;
         importedCube.socketID = connectionID;
@@ -178,40 +175,36 @@ camera.lookAt(0,0,0);
 //ANIMATION LOOP
 function animate() {
     requestAnimationFrame(animate);
-    selfPlayer = players.filter(obj => {
-        return obj.socketID == socket.id;
-    });
-    selfFlashLight = playersFlashlights.filter(obj => { 
-        return obj.socketID == socket.id;
-    });
+    selfPlayer = players.find(obj=>obj.socketID==socket.id);
+    selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
     if (selfPlayersCreated > 0) {
         if (window.Wpressed) {
-            selfPlayer[0].position.y += PLAYER_VELOCITY;
-            selfFlashLight[0].position.y += PLAYER_VELOCITY;
+            selfPlayer.position.y += PLAYER_VELOCITY;
+            selfFlashLight.position.y += PLAYER_VELOCITY;
             socket.emit('player movement', socket.id, 1) //1 = up
         }
         if (window.Apressed) {
-            selfPlayer[0].position.x -= PLAYER_VELOCITY;
-            selfFlashLight[0].position.x -= PLAYER_VELOCITY;
+            selfPlayer.position.x -= PLAYER_VELOCITY;
+            selfFlashLight.position.x -= PLAYER_VELOCITY;
             socket.emit('player movement', socket.id, 2) //2 = left
         }
         if (window.Spressed) {
-            selfPlayer[0].position.y -= PLAYER_VELOCITY;
-            selfFlashLight[0].position.y -= PLAYER_VELOCITY;
+            selfPlayer.position.y -= PLAYER_VELOCITY;
+            selfFlashLight.position.y -= PLAYER_VELOCITY;
             socket.emit('player movement', socket.id, 3) //3 = down
         }
         if (window.Dpressed) {
-            selfPlayer[0].position.x += PLAYER_VELOCITY;
-            selfFlashLight[0].position.x += PLAYER_VELOCITY;
+            selfPlayer.position.x += PLAYER_VELOCITY;
+            selfFlashLight.position.x += PLAYER_VELOCITY;
             socket.emit('player movement', socket.id, 4) //4 = right
         }
         if (window.Spacepressed) {
-            selfFlashLight[0].visible = true;
-            socket.emit('player flashlight toggle', socket.id, selfFlashLight[0].visible);
+            selfFlashLight.visible = true;
+            socket.emit('player flashlight toggle', socket.id, selfFlashLight.visible);
         }
         if (window.Space_unpressed) {
-            selfFlashLight[0].visible = false;
-            socket.emit('player flashlight toggle', socket.id, selfFlashLight[0].visible);
+            selfFlashLight.visible = false;
+            socket.emit('player flashlight toggle', socket.id, selfFlashLight.visible);
         }
     }
      
@@ -268,8 +261,8 @@ function onMouseMove(event) {
         playerFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
         player.rotation.z = angle
         playerFlashLight.rotation.z = angle + Math.PI/2;
-        playerFlashLight.position.x = selfPlayer[0].position.x + Math.cos(selfPlayer[0].rotation.z) * 37.5;
-        playerFlashLight.position.y = selfPlayer[0].position.y + Math.sin(selfPlayer[0].rotation.z) * 37.5;
+        playerFlashLight.position.x = selfPlayer.position.x + Math.cos(selfPlayer.rotation.z) * 37.5;
+        playerFlashLight.position.y = selfPlayer.position.y + Math.sin(selfPlayer.rotation.z) * 37.5;
         socket.emit('player rotation', socket.id, angle)
     }
 }
