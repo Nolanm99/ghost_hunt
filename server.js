@@ -66,6 +66,15 @@ io.on('connection', socket => {
             selectedPlayer.Xposition += PLAYER_VELOCITY;
         }
 
+        if (Math.abs(selectedPlayer.Xposition) > 250 || Math.abs(selectedPlayer.Yposition) > 250) {
+            if (selectedPlayer.Xposition > 250) selectedPlayer.Xposition = 250;
+            else if (selectedPlayer.Xposition < -250) selectedPlayer.Xposition = -250;
+            else if (selectedPlayer.Yposition > 250) selectedPlayer.Yposition = 250;
+            else if (selectedPlayer.Yposition < -250) selectedPlayer.Yposition = -250;
+
+            io.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
+        }
+
         socket.broadcast.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
     });
 

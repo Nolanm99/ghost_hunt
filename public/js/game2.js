@@ -5,7 +5,8 @@ const SPHERE_RADIUS = 10;
 const PLAYER_VELOCITY = 2;
 const loader = new THREE.GLTFLoader();
 var mouse = new THREE.Vector2();
-var mouseAngle = 0; 
+var mouseDown = false;
+var mouseUp = true;
 var selfPlayersCreated = 0;
 var players = [];
 var playersFlashlights = [];
@@ -198,11 +199,11 @@ function animate() {
             selfFlashLight.position.x += PLAYER_VELOCITY;
             socket.emit('player movement', socket.id, 4) //4 = right
         }
-        if (window.Spacepressed) {
+        if (mouseDown) {
             selfFlashLight.visible = true;
             socket.emit('player flashlight toggle', socket.id, selfFlashLight.visible);
         }
-        if (window.Space_unpressed) {
+        if (mouseUp) {
             selfFlashLight.visible = false;
             socket.emit('player flashlight toggle', socket.id, selfFlashLight.visible);
         }
@@ -253,7 +254,7 @@ function onMouseMove(event) {
     mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
     raycaster.setFromCamera(mouse.clone(), camera);
-    intersects = raycaster.intersectObjects(scene.children);
+    intersects = raycaster.intersectObject(scene.children[0]);
 
     if(players.length > 0) {
         relativePointX = intersects[0].point.x - selfPlayer.position.x;
@@ -261,7 +262,6 @@ function onMouseMove(event) {
         if (intersects.length > 0) {
             angle = Math.atan2(relativePointY, relativePointX);
         }
-        
         player = players.find(obj=>obj.socketID==socket.id);    
         playerFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
         player.rotation.z = angle
@@ -272,9 +272,21 @@ function onMouseMove(event) {
     }
 }
 
+function onMouseDown(event) {
+    mouseDown = true;
+    mouseUp = false;
+}
+
+function onMouseUp(event) {
+    mouseDown = false;
+    mouseUp = true;
+}
+
 document.addEventListener("keydown", onDocumentKeyDown, false);
 document.addEventListener("keyup", onDocumentKeyUp, false);
 document.addEventListener("mousemove", onMouseMove, false);
+document.addEventListener("mousedown", onMouseDown, false);
+document.addEventListener("mouseup", onMouseUp, false);
 
 newPlayerBtn.addEventListener('click', () => {
     selfCreatePlayer();
