@@ -247,16 +247,21 @@ function onDocumentKeyUp(event) {
     }};
 
 function onMouseMove(event) {
+    selfPlayer = players.find(obj=>obj.socketID==socket.id);
+    selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
     mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
     raycaster.setFromCamera(mouse.clone(), camera);
     intersects = raycaster.intersectObjects(scene.children);
 
     if(players.length > 0) {
+        relativePointX = intersects[0].point.x - selfPlayer.position.x;
+        relativePointY = intersects[0].point.y - selfPlayer.position.y;
         if (intersects.length > 0) {
-            angle = Math.atan2(intersects[0].point.y, intersects[0].point.x);
+            angle = Math.atan2(relativePointY, relativePointX);
         }
+        
         player = players.find(obj=>obj.socketID==socket.id);    
         playerFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
         player.rotation.z = angle
