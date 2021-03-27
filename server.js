@@ -29,6 +29,7 @@ class Player {
         this.Yposition = 0;
         this.flashLightStatus = false;
         this.rotationAngle = 0;
+        this.illuminated = false;
     }
 }
 
@@ -90,6 +91,16 @@ io.on('connection', socket => {
         socket.broadcast.emit('player rotation', socketID, newAngle);
     });
 
+    socket.on('player illuminated', (socketID, illuminatedStatus, illuminatedStartTime)=> {
+        selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
+        selectedPlayer.illuminated = illuminatedStatus;
+        io.emit('player illuminated', socketID, illuminatedStatus);
+        setTimeout(function() {
+            selectedPlayer.illuminated = !illuminatedStatus;
+            io.emit('player illuminated', socketID, !illuminatedStatus);
+        }, 1000); //flip back color after 1 seconds
+    });
+
     //When the client disconnects
     socket.on('disconnect', ()=> {
         socket.broadcast.emit('player disconnect', socket.id);
@@ -103,6 +114,8 @@ io.on('connection', socket => {
     });
 
 });
+
+
 
 server.listen(PORT, "0.0.0.0", ()=> {
     console.log('Server running on port 3000');

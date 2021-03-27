@@ -5,6 +5,10 @@ const SPHERE_RADIUS = 10;
 const PLAYER_VELOCITY = 2;
 const loader = new THREE.GLTFLoader();
 var mouse = new THREE.Vector2();
+var playerDirection = new THREE.Vector3();
+const playerLightRayCaster = new THREE.Raycaster();
+var date = new Date();
+var intersects = [];
 var mouseDown = false;
 var mouseUp = true;
 var selfPlayersCreated = 0;
@@ -58,6 +62,18 @@ socket.on('player rotation', (socketID, newAngle)=> {
     flashlight.position.y = player.position.y + Math.sin(player.rotation.z) * 37.5;
 });
 
+socket.on('player illuminated', (socketID, illuminatedStatus)=> {
+    player = players.find(obj=>obj.socketID==socketID);
+    player.illuminated = illuminatedStatus;
+    if(player.illuminated) {
+        player.material.color.set('#fcba03')
+    }
+    else {
+        newColor = '#'.concat(player.originalColor)
+        player.material.color.set(newColor);
+    }
+});
+
 socket.on('player disconnect', connectionID => {
     disconnectedPlayer = players.filter(obj => {
         return obj.socketID == connectionID;
@@ -72,7 +88,7 @@ socket.on('player disconnect', connectionID => {
 
 //SCENE AND RENDERER SETUP
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('grey');
+scene.background = new THREE.Color('#66b8c4');
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer( {canvas: sceneCanvas} );
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -92,6 +108,7 @@ function selfCreatePlayer() {
             importedCube.material = modelMaterial;
             importedCone.position.z = 12.5;
             importedCube.castShadow = true;
+            importedCube.originalColor = importedCube.material.color.getHexString();
             importedCube.socketID = socket.id;
             importedCone.socketID = socket.id;
             importedCone.visible = false;
@@ -120,6 +137,7 @@ function createOtherPlayer(connectionID, color, callback) {
         importedCube.material = modelMaterial;
         importedCone.position.z = 12.5;
         importedCube.castShadow = true;
+        importedCube.originalColor = importedCube.material.color.getHexString();
         importedCube.socketID = connectionID;
         importedCone.socketID = connectionID;
         importedCone.visible = false;
@@ -136,30 +154,17 @@ texture = new THREE.TextureLoader().load('../assets/checker.png');
 texture.wrapS = THREE.RepeatWrapping;
 texture.wrapT = THREE.RepeatWrapping;
 texture.repeat.set( 4, 4 );
-const planeGeom = new THREE.PlaneGeometry(500,500,1);
+const planeGeom = new THREE.PlaneGeometry(700,700,1);
 const planeMaterial = new THREE.MeshStandardMaterial( {map: texture} );
 const plane = new THREE.Mesh(planeGeom, planeMaterial);
 plane.receiveShadow = true;
 scene.add(plane);
 
-
-//CONTROLS (disabling for now)
-/*
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.rotateSpeed = 0.5;
-controls.zoomSpeed = 1.2;
-controls.panSpeed = 0.8;
-controls.noZoom = false;
-controls.noPan = false;
-controls.staticMoving = true;
-controls.dynamicDampingFactor = 0.3;
-*/
-
 //LIGHTING
 const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.3);
 scene.add(ambientLight);
-const directionalLight = new THREE.SpotLight(0xFFFFFF,0.7);
-directionalLight.position.set(200,0,300);
+const directionalLight = new THREE.SpotLight(0xFFFFFF,0.7, 5000);
+directionalLight.position.set(100,0,500);
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
@@ -200,7 +205,24 @@ function animate() {
             socket.emit('player movement', socket.id, 4) //4 = right
         }
         if (mouseDown) {
+            //turn the flashlight on
             selfFlashLight.visible = true;
+
+            //check for collisions?
+            playerDirection.set(Math.cos(selfPlayer.rotation.z), Math.sin(selfPlayer.rotation.z), 0);
+            playerLightRayCaster.set(selfPlayer.position, playerDirection);
+            intersects = playerLightRayCaster.intersectObjects(players);
+            intersects = intersects.filter(function (obj) {
+                return obj.distance <= 50;
+            })
+            if (intersects.length) {
+                intersects.forEach((cube)=> {
+                    cube.object.material.color.set('#fcba03')
+                    cube.object.illuminatedStartTime = date.getTime();
+                    cube.object.illuminated = true;
+                    socket.emit('player illuminated', cube.object.socketID, cube.object.illuminated);
+                })
+            }
             socket.emit('player flashlight toggle', socket.id, selfFlashLight.visible);
         }
         if (mouseUp) {
