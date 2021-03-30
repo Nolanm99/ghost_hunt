@@ -30,6 +30,8 @@ class Player {
         this.flashLightStatus = false;
         this.rotationAngle = 0;
         this.illuminated = false;
+        this.flashlightBatteryLevel = 100;
+        this.flashlightLockoutTimer = false;
     }
 }
 
@@ -79,10 +81,29 @@ io.on('connection', socket => {
         socket.broadcast.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
     });
 
-    socket.on('player flashlight toggle', (socketID, status)=> {
+    socket.on('player flashlight on', (socketID)=> {
         selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
-        selectedPlayer.flashLightStatus = !selectedPlayer.flashLightStatus;
-        socket.broadcast.emit('player flashlight toggle', socketID, status)
+        if(selectedPlayer.flashlightLockoutTimer == false) {
+            if(selectedPlayer.flashlightBatteryLevel > 0 ) {
+                selectedPlayer.flashLightStatus = true;
+                io.emit('player flashlight on', socketID, selectedPlayer.flashlightBatteryLevel);
+            }
+            else {
+                selectedPlayer.flashlightLockoutTimer = true;
+                setTimeout(function() {selectedPlayer.flashlightLockoutTimer = false; }, 2000);
+                selectedPlayer.flashLightStatus = false;
+                io.emit('player flashlight off', socketID, selectedPlayer.flashlightBatteryLevel);
+            }
+        }
+        
+        selectedPlayer.flashlightBatteryLevel -= 1;
+        if(selectedPlayer.flashlightBatteryLevel < 0) {selectedPlayer.flashlightBatteryLevel = 0;}
+    });
+
+    socket.on('player flashlight off', (socketID)=> {
+        selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
+        selectedPlayer.flashLightStatus = false;
+        io.emit('player flashlight off', socketID);
     });
 
     socket.on('player rotation', (socketID, newAngle)=> {
@@ -91,7 +112,7 @@ io.on('connection', socket => {
         socket.broadcast.emit('player rotation', socketID, newAngle);
     });
 
-    socket.on('player illuminated', (socketID, illuminatedStatus, illuminatedStartTime)=> {
+    socket.on('player illuminated', (socketID, illuminatedStatus)=> {
         selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
         selectedPlayer.illuminated = illuminatedStatus;
         io.emit('player illuminated', socketID, illuminatedStatus);
@@ -113,10 +134,37 @@ io.on('connection', socket => {
         });
     });
 
+    
+
 });
 
 
 
 server.listen(PORT, "0.0.0.0", ()=> {
     console.log('Server running on port 3000');
+    setInterval(chargeBatteriesWhileFlashlightOff, 100);
+    setInterval(updateBatteryStatus,10);
 });
+
+
+function chargeBatteriesWhileFlashlightOff() {
+    playersWithFlashlightsOff = playerList.filter(obj=> {
+        return obj.flashLightStatus == false;
+    })
+    
+    if(typeof playersWithFlashlightsOff !== 'undefined') {
+        playersWithFlashlightsOff.forEach(player => {
+            if(player.flashlightBatteryLevel < 100) { 
+                if(player.flashlightLockoutTimer == false) {
+                    player.flashlightBatteryLevel += 1;
+                }
+            }
+        })
+    }
+}
+
+function updateBatteryStatus() {
+    playerList.forEach(player => {
+        io.to(player.socketID).emit('battery status', player.flashlightBatteryLevel);
+    })
+}

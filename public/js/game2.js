@@ -1,5 +1,8 @@
 const socket = io();
 const newPlayerBtn = document.getElementById('newPlayerBtn');
+const siteMenu = document.getElementById('site-menu');
+const flashLightBatteryElement = document.getElementById('flashLightStatusCard');
+const flashLightBatteryProgressBarElement = document.getElementById('flashLightBattery');
 const PLAYER_CREATION_LIMIT = 1;
 const SPHERE_RADIUS = 10;
 const PLAYER_VELOCITY = 2;
@@ -22,7 +25,6 @@ socket.on('message', (message) => {
 
 socket.on('new player', (connectionID, color) => {
     createOtherPlayer(connectionID, color, ()=> {
-
     });
 });
 
@@ -47,19 +49,35 @@ socket.on('player movement', (connectionID, Xposition, Yposition)=> {
     flashlight.position.y = Yposition + Math.sin(player.rotation.z) * 37.5;
 })
 
-socket.on('player flashlight toggle', (socketID, status)=> {
+socket.on('player flashlight on', (socketID)=> {
     flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
-    flashlight.visible = status;
+    if(typeof flashlight !== 'undefined') {
+        flashlight.visible = true;
+    }
+});
+socket.on('player flashlight off', (socketID)=> {
+    console.log('received flashlight off status');
+    flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
+    if(typeof flashlight !== 'undefined') {
+        flashlight.visible = false;
+    }
+});
+
+socket.on('battery status', (batteryLevel)=> {
+    selfPlayer = players.find(obj=>obj.socketID==socket.id);
+    flashLightBatteryProgressBarElement.style.width = String(batteryLevel).concat("%");
 });
 
 socket.on('player rotation', (socketID, newAngle)=> {   
     player = players.find(obj=>obj.socketID==socketID);
     flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
 
-    player.rotation.z = newAngle
-    flashlight.rotation.z = newAngle + Math.PI/2;
-    flashlight.position.x = player.position.x + Math.cos(player.rotation.z) * 37.5;
-    flashlight.position.y = player.position.y + Math.sin(player.rotation.z) * 37.5;
+    if(typeof player !== 'undefined') {
+        player.rotation.z = newAngle
+        flashlight.rotation.z = newAngle + Math.PI/2;
+        flashlight.position.x = player.position.x + Math.cos(player.rotation.z) * 37.5;
+        flashlight.position.y = player.position.y + Math.sin(player.rotation.z) * 37.5;
+    }
 });
 
 socket.on('player illuminated', (socketID, illuminatedStatus)=> {
@@ -110,6 +128,7 @@ function selfCreatePlayer() {
             importedCube.castShadow = true;
             importedCube.originalColor = importedCube.material.color.getHexString();
             importedCube.socketID = socket.id;
+            importedCube.flashlightBattery = 100;
             importedCone.socketID = socket.id;
             importedCone.visible = false;
             players.push(importedCube);
@@ -139,6 +158,7 @@ function createOtherPlayer(connectionID, color, callback) {
         importedCube.castShadow = true;
         importedCube.originalColor = importedCube.material.color.getHexString();
         importedCube.socketID = connectionID;
+        importedCube.flashlightBattery = 100;
         importedCone.socketID = connectionID;
         importedCone.visible = false;
         players.push(importedCube);
@@ -205,9 +225,9 @@ function animate() {
             socket.emit('player movement', socket.id, 4) //4 = right
         }
         if (mouseDown) {
-            //turn the flashlight on
-            selfFlashLight.visible = true;
-
+            //send request to turn flashlight on
+            socket.emit('player flashlight on', socket.id);
+            
             //check for collisions?
             playerDirection.set(Math.cos(selfPlayer.rotation.z), Math.sin(selfPlayer.rotation.z), 0);
             playerLightRayCaster.set(selfPlayer.position, playerDirection);
@@ -223,11 +243,12 @@ function animate() {
                     socket.emit('player illuminated', cube.object.socketID, cube.object.illuminated);
                 })
             }
-            socket.emit('player flashlight toggle', socket.id, selfFlashLight.visible);
+            
         }
         if (mouseUp) {
-            selfFlashLight.visible = false;
-            socket.emit('player flashlight toggle', socket.id, selfFlashLight.visible);
+            if(selfFlashLight.visible == true) {
+                socket.emit('player flashlight off', socket.id);
+            }
         }
     }
      
@@ -270,18 +291,19 @@ function onDocumentKeyUp(event) {
     }};
 
 function onMouseMove(event) {
-    selfPlayer = players.find(obj=>obj.socketID==socket.id);
-    selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
-    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    if(typeof selfPlayer !== 'undefined') {
+        selfPlayer = players.find(obj=>obj.socketID==socket.id);
+        selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
+        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-    raycaster.setFromCamera(mouse.clone(), camera);
-    intersects = raycaster.intersectObject(scene.children[0]);
-
-    if(players.length > 0) {
-        relativePointX = intersects[0].point.x - selfPlayer.position.x;
-        relativePointY = intersects[0].point.y - selfPlayer.position.y;
+        raycaster.setFromCamera(mouse.clone(), camera);
+        intersects = raycaster.intersectObject(scene.children[0]);
+    
+        
         if (intersects.length > 0) {
+            relativePointX = intersects[0].point.x - selfPlayer.position.x;
+            relativePointY = intersects[0].point.y - selfPlayer.position.y;
             angle = Math.atan2(relativePointY, relativePointX);
         }
         player = players.find(obj=>obj.socketID==socket.id);    
@@ -312,7 +334,9 @@ document.addEventListener("mouseup", onMouseUp, false);
 
 newPlayerBtn.addEventListener('click', () => {
     selfCreatePlayer();
-    newPlayerBtn.style.display = "none";
+    siteMenu.style.display = "none";
+    flashLightBatteryElement.style.display = "block";
+    //flashLightBatteryProgressBarElement.style.width = "100%";
 })
 
 

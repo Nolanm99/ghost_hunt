@@ -8,10 +8,24 @@ position: absolute;
 }
 #newPlayerBtn {
 position:absolute;
-left:46.7%;
-top:48%
+left:45%;
+top:40%
 }
 
 body {
 	margin: 0;
+}
+
+#site-menu {
+	opacity: 90%;
+	position: absolute;
+	left:30%;
+	top:48%
+}
+
+#flashLightStatusCard {
+	width: 50rem; 
+	position: absolute;
+	left:27%;
+	top: 1%;
 }
