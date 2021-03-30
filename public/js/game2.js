@@ -229,22 +229,24 @@ function animate() {
             socket.emit('player flashlight on', socket.id);
             
             //check for collisions?
-            playerDirection.set(Math.cos(selfPlayer.rotation.z), Math.sin(selfPlayer.rotation.z), 0);
-            playerLightRayCaster.set(selfPlayer.position, playerDirection);
-            intersects = playerLightRayCaster.intersectObjects(players);
-            intersects = intersects.filter(function (obj) {
-                return obj.distance <= 50;
-            })
-            if (intersects.length) {
-                intersects.forEach((cube)=> {
-                    cube.object.material.color.set('#fcba03')
-                    cube.object.illuminatedStartTime = date.getTime();
-                    cube.object.illuminated = true;
-                    socket.emit('player illuminated', cube.object.socketID, cube.object.illuminated);
+            if(selfFlashLight.visible) {
+                playerDirection.set(Math.cos(selfPlayer.rotation.z), Math.sin(selfPlayer.rotation.z), 0);
+                playerLightRayCaster.set(selfPlayer.position, playerDirection);
+                intersects = playerLightRayCaster.intersectObjects(players);
+                intersects = intersects.filter(function (obj) {
+                    return obj.distance <= 50;
                 })
+                if (intersects.length) {
+                    intersects.forEach((cube)=> {
+                        cube.object.material.color.set('#fcba03')
+                        cube.object.illuminatedStartTime = date.getTime();
+                        cube.object.illuminated = true;
+                        socket.emit('player illuminated', cube.object.socketID, cube.object.illuminated);
+                    })
+                }
             }
-            
         }
+
         if (mouseUp) {
             if(selfFlashLight.visible == true) {
                 socket.emit('player flashlight off', socket.id);

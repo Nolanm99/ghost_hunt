@@ -14,6 +14,8 @@ app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/example
 var connectionList = [];
 var playerList = [];
 
+//Load dependencies
+var serverIntermittentFunctions = require('./serverJS/serverIntermittentFunctions.js');
 
 class Connection {
     constructor(id) {
@@ -50,6 +52,7 @@ io.on('connection', socket => {
         console.log('New Player Created: ', connectionID, color)
         socket.broadcast.emit('new player', connectionID, color);
         playerList.push(new Player(connectionID, color));
+        console.log(playerList)
     });
 
     //When a player moves their position
@@ -83,21 +86,23 @@ io.on('connection', socket => {
 
     socket.on('player flashlight on', (socketID)=> {
         selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
-        if(selectedPlayer.flashlightLockoutTimer == false) {
-            if(selectedPlayer.flashlightBatteryLevel > 0 ) {
-                selectedPlayer.flashLightStatus = true;
-                io.emit('player flashlight on', socketID, selectedPlayer.flashlightBatteryLevel);
+        if(typeof selectedPlayer !== 'undefined') {
+            if(selectedPlayer.flashlightLockoutTimer == false) {
+                if(selectedPlayer.flashlightBatteryLevel > 0 ) {
+                    selectedPlayer.flashLightStatus = true;
+                    io.emit('player flashlight on', socketID, selectedPlayer.flashlightBatteryLevel);
+                }
+                else {
+                    selectedPlayer.flashlightLockoutTimer = true;
+                    setTimeout(function() {selectedPlayer.flashlightLockoutTimer = false; }, 2000);
+                    selectedPlayer.flashLightStatus = false;
+                    io.emit('player flashlight off', socketID, selectedPlayer.flashlightBatteryLevel);
+                }
             }
-            else {
-                selectedPlayer.flashlightLockoutTimer = true;
-                setTimeout(function() {selectedPlayer.flashlightLockoutTimer = false; }, 2000);
-                selectedPlayer.flashLightStatus = false;
-                io.emit('player flashlight off', socketID, selectedPlayer.flashlightBatteryLevel);
-            }
+            
+            selectedPlayer.flashlightBatteryLevel -= 1;
+            if(selectedPlayer.flashlightBatteryLevel < 0) {selectedPlayer.flashlightBatteryLevel = 0;}
         }
-        
-        selectedPlayer.flashlightBatteryLevel -= 1;
-        if(selectedPlayer.flashlightBatteryLevel < 0) {selectedPlayer.flashlightBatteryLevel = 0;}
     });
 
     socket.on('player flashlight off', (socketID)=> {
@@ -133,38 +138,14 @@ io.on('connection', socket => {
             return obj.socketID != socket.id;
         });
     });
-
-    
-
+    setInterval(serverIntermittentFunctions.chargeBatteriesWhileFlashlightOff, 100, playerList);
+    setInterval(serverIntermittentFunctions.updateBatteryStatus, 100, playerList, io);
 });
 
 
 
 server.listen(PORT, "0.0.0.0", ()=> {
     console.log('Server running on port 3000');
-    setInterval(chargeBatteriesWhileFlashlightOff, 100);
-    setInterval(updateBatteryStatus,10);
+    //setInterval(serverIntermittentFunctions.updateBatteryStatus, 1000, playerList, io);
+    //setInterval(serverIntermittentFunctions.chargeBatteriesWhileFlashlightOff, 100, playerList);
 });
-
-
-function chargeBatteriesWhileFlashlightOff() {
-    playersWithFlashlightsOff = playerList.filter(obj=> {
-        return obj.flashLightStatus == false;
-    })
-    
-    if(typeof playersWithFlashlightsOff !== 'undefined') {
-        playersWithFlashlightsOff.forEach(player => {
-            if(player.flashlightBatteryLevel < 100) { 
-                if(player.flashlightLockoutTimer == false) {
-                    player.flashlightBatteryLevel += 1;
-                }
-            }
-        })
-    }
-}
-
-function updateBatteryStatus() {
-    playerList.forEach(player => {
-        io.to(player.socketID).emit('battery status', player.flashlightBatteryLevel);
-    })
-}
