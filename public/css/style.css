@@ -29,3 +29,13 @@ body {
 	left:27%;
 	top: 1%;
 }
+
+#profile_image_container {
+	position: absolute;
+	left:95%;
+	top: 2%;
+}
+
+#profile_image {
+	width: 70%;
+}

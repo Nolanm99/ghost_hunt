@@ -7,16 +7,48 @@ const PORT = 3000;
 const server = http.createServer(app);
 const io = socketio(server)
 const PLAYER_VELOCITY = 2;
+const authRoutes = require('./routes/auth-routes');
+const profileRoutes = require('./routes/profile-routes');
+const passportSetup = require('./config/passport-setup');
+const mongoose = require('mongoose');
+const cookieSession = require('cookie-session');
+const passport = require('passport');
+const keys = require('./config/keys')
+
+app.use('/public/', express.static(path.join(__dirname, 'public')));
+app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/examples/js/')))
 
 //Set static folder
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/examples/js/')))
-var connectionList = [];
-var playerList = [];
+app.set('view engine', 'ejs')
+
+app.use(cookieSession({
+    maxAge:24*60*60*1000,
+    keys: [keys.session.cookieKey]
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+mongoose.connect(keys.mongodb.dbURL, () => {
+    console.log('connected to database.')
+})
+
+
+
+app.use('/auth',authRoutes);
+app.use('/profile',profileRoutes);
+
+app.get('/', (req,res) => {
+    res.render('home', {user: req.user});
+})
+
+
+
 
 //Load dependencies
 var serverIntermittentFunctions = require('./serverJS/serverIntermittentFunctions.js');
-
+var connectionList = [];
+var playerList = [];
 class Connection {
     constructor(id) {
         this.socketID = id;
@@ -52,7 +84,6 @@ io.on('connection', socket => {
         console.log('New Player Created: ', connectionID, color)
         socket.broadcast.emit('new player', connectionID, color);
         playerList.push(new Player(connectionID, color));
-        console.log(playerList)
     });
 
     //When a player moves their position
@@ -146,6 +177,6 @@ io.on('connection', socket => {
 
 server.listen(PORT, "0.0.0.0", ()=> {
     console.log('Server running on port 3000');
-    //setInterval(serverIntermittentFunctions.updateBatteryStatus, 1000, playerList, io);
-    //setInterval(serverIntermittentFunctions.chargeBatteriesWhileFlashlightOff, 100, playerList);
 });
+
+

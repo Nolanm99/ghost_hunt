@@ -1,16 +1,16 @@
 <head>
     <script src='https://threejs.org/build/three.js'></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/GLTFLoader.js"></script>
-    <link rel="stylesheet" href="css/style.css">
+    <script src="../public/js/GLTFLoader.js"></script>
+    
+    <link rel="stylesheet" href="../public/css/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
 </head>  
 <body> 
-    <script src="js/game2.js" defer></script>
-    
     <div class="canvasContainer">
         <canvas id="sceneCanvas"></canvas>
+
         <div class='card' id='flashLightStatusCard' style="display:none">
             <div class="flashLightStatus" id='flashLightStatusBar'>
                 <div class="progress">
@@ -18,10 +18,22 @@
                 </div>
             </div>
         </div>
+        
+        <% if (user) { %>
+        <div id="profile_image_container">
+            <img id="profile_image" class="img-circle" src="<%= user.thumbnail %>">
+        </div>
+        <% } %>
+
         <div class='card' id='site-menu' style="width: 50rem; height: 10rem;">
             <button type="button" id="newPlayerBtn" class="btn btn-primary btn-lg">New Player</button>
         </div>
     </div>
+
+    <script src="../public//js/scene_creation.js"></script>
+    <script src="../public//js/movement_functions.js"></script>
+    <script src="../public//js/constants.js"></script>
+    <script src="../public/js/client_main.js" defer></script>
 </body>
 
 
