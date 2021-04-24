@@ -17,6 +17,7 @@ const keys = require('./config/keys')
 
 app.use('/public/', express.static(path.join(__dirname, 'public')));
 app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/examples/js/')))
+app.use('/three/', express.static(path.join(__dirname, 'node_modules/three/build/')))
 
 //Set static folder
 app.set('view engine', 'ejs')
@@ -33,8 +34,6 @@ mongoose.connect(keys.mongodb.dbURL, () => {
     console.log('connected to database.')
 })
 
-
-
 app.use('/auth',authRoutes);
 app.use('/profile',profileRoutes);
 
@@ -49,6 +48,8 @@ app.get('/', (req,res) => {
 var serverIntermittentFunctions = require('./serverJS/serverIntermittentFunctions.js');
 var connectionList = [];
 var playerList = [];
+var roomList = [];
+
 class Connection {
     constructor(id) {
         this.socketID = id;
@@ -57,7 +58,8 @@ class Connection {
 }
 class Player {
     constructor(id, color) {
-        this.socketID = id
+        this.socketID = id;
+        this.roomID = 0;
         this.color = color;
         this.Xposition = 0;
         this.Yposition = 0;
@@ -69,6 +71,16 @@ class Player {
     }
 }
 
+class Room {
+    constructor(id) {
+        this.MAX_PLAYERS = 2;
+        this.playerList = [];
+        this.roomID = id;
+        this.roomStatus = 0; //0:PREGAME LOBBY, 1:IN GAME
+    }
+}
+
+roomList.push(new Room(1));
 
 //On client connection
 io.on('connection', socket => {
@@ -76,19 +88,46 @@ io.on('connection', socket => {
     connectionList.push(new Connection(socket.id));
     console.log('Current Connections: ', connectionList);
 
-    //Sync with other players (download their positions)
-    socket.emit('player sync', playerList);
-
     //When someone hits the new player button
     socket.on('new player', (connectionID, color)=> {
+        newPlayer = new Player(connectionID, color)
+        playerList.push(newPlayer);
+
+        //Find a room to put the player in
+        roomList.forEach(room => {
+            if(room.playerList.length < room.MAX_PLAYERS && newPlayer.roomID == 0) {
+                //Send the room's player list for synchronization
+                socket.emit('player sync', room.playerList);   
+                
+                room.playerList.push(newPlayer);
+                newPlayer.roomID = room.roomID;
+                socket.join(room.roomID)
+            }
+        })
+
+        //If all of the current rooms are full, make a new room and put the player in it
+        if(newPlayer.roomID == 0) {
+            //Send the room's player list for synchronization
+            newRoomID = roomList.length + 1;
+            newRoom = new Room(newRoomID);
+            socket.emit('player sync', newRoom.playerList);   
+            
+            roomList.push(newRoom);
+            newRoom.playerList.push(newPlayer);
+            newPlayer.roomID = newRoom.roomID;
+            socket.join(newRoom.roomID)
+        }
+
         console.log('New Player Created: ', connectionID, color)
-        socket.broadcast.emit('new player', connectionID, color);
-        playerList.push(new Player(connectionID, color));
+        socket.to(newPlayer.roomID).emit('new player', connectionID, color);
     });
+
+   
 
     //When a player moves their position
     socket.on('player movement', (connectionID, direction)=> {
         selectedPlayer = playerList.find(obj=>obj.socketID==connectionID);
+        selectedRoom = roomList.find(room => room.roomID == selectedPlayer.roomID);
 
         if(direction == 1) {
             selectedPlayer.Yposition += PLAYER_VELOCITY;
@@ -109,25 +148,30 @@ io.on('connection', socket => {
             else if (selectedPlayer.Yposition > 250) selectedPlayer.Yposition = 250;
             else if (selectedPlayer.Yposition < -250) selectedPlayer.Yposition = -250;
 
-            io.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
+            io.to(selectedRoom.roomID).emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
         }
 
-        socket.broadcast.emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
+        //Send player movement data to players in the same room
+        io.to(selectedRoom.roomID).emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
+
     });
 
     socket.on('player flashlight on', (socketID)=> {
         selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
+        if(selectedPlayer) {
+            selectedRoom = roomList.find(room => room.roomID == selectedPlayer.roomID);
+        }
         if(typeof selectedPlayer !== 'undefined') {
             if(selectedPlayer.flashlightLockoutTimer == false) {
                 if(selectedPlayer.flashlightBatteryLevel > 0 ) {
                     selectedPlayer.flashLightStatus = true;
-                    io.emit('player flashlight on', socketID, selectedPlayer.flashlightBatteryLevel);
+                    io.to(selectedRoom.roomID).emit('player flashlight on', socketID, selectedPlayer.flashlightBatteryLevel);
                 }
                 else {
                     selectedPlayer.flashlightLockoutTimer = true;
                     setTimeout(function() {selectedPlayer.flashlightLockoutTimer = false; }, 2000);
                     selectedPlayer.flashLightStatus = false;
-                    io.emit('player flashlight off', socketID, selectedPlayer.flashlightBatteryLevel);
+                    io.to(selectedRoom.roomID).emit('player flashlight off', socketID, selectedPlayer.flashlightBatteryLevel);
                 }
             }
             
@@ -138,14 +182,17 @@ io.on('connection', socket => {
 
     socket.on('player flashlight off', (socketID)=> {
         selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
+        selectedRoom = roomList.find(room => room.roomID == selectedPlayer.roomID);
         selectedPlayer.flashLightStatus = false;
-        io.emit('player flashlight off', socketID);
+        io.to(selectedRoom.roomID).emit('player flashlight off', socketID);
     });
 
     socket.on('player rotation', (socketID, newAngle)=> {
         selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
+        selectedRoom = roomList.find(room => room.roomID == selectedPlayer.roomID);
         selectedPlayer.rotationAngle = newAngle;
-        socket.broadcast.emit('player rotation', socketID, newAngle);
+        
+        io.to(selectedRoom.roomID).emit('player rotation', socketID, newAngle);
     });
 
     socket.on('player illuminated', (socketID, illuminatedStatus)=> {
@@ -160,7 +207,14 @@ io.on('connection', socket => {
 
     //When the client disconnects
     socket.on('disconnect', ()=> {
-        socket.broadcast.emit('player disconnect', socket.id);
+        selectedPlayer = playerList.find(obj=>obj.socketID==socket.id);
+        if(selectedPlayer) {
+            selectedRoom = roomList.find(room => room.roomID == selectedPlayer.roomID);
+        }
+        
+        //socket.broadcast.emit('player disconnect', socket.id);
+        io.to(selectedRoom.roomID).emit('player disconnect', socket.id);
+
         console.log('DISCONNECTED: ', socket.id)
         connectionList = connectionList.filter(obj => {
             return obj.socketID != socket.id;
@@ -168,12 +222,16 @@ io.on('connection', socket => {
         playerList = playerList.filter(obj => {
             return obj.socketID != socket.id;
         });
+
+        selectedRoom.playerList = selectedRoom.playerList.filter(obj => {
+            return obj.socketID != socket.id;
+        });
     });
     setInterval(serverIntermittentFunctions.chargeBatteriesWhileFlashlightOff, 100, playerList);
     setInterval(serverIntermittentFunctions.updateBatteryStatus, 100, playerList, io);
 });
 
-
+setInterval(serverIntermittentFunctions.printRoomsStatus, 2000, roomList);
 
 server.listen(PORT, "0.0.0.0", ()=> {
     console.log('Server running on port 3000');

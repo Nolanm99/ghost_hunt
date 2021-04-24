@@ -7,9 +7,10 @@
 position: absolute;
 }
 #newPlayerBtn {
-position:absolute;
-left:45%;
-top:40%
+	position: relative;
+	width: 10rem;
+	top:25%;
+	left:43%;
 }
 
 body {
@@ -17,10 +18,11 @@ body {
 }
 
 #site-menu {
-	opacity: 90%;
 	position: absolute;
 	left:30%;
-	top:48%
+	top:40%;
+	width: 50rem;
+	height: 20rem;
 }
 
 #flashLightStatusCard {
@@ -37,5 +39,13 @@ body {
 }
 
 #profile_image {
-	width: 70%;
+	width: 60%;
+}
+
+#google_login_btn {
+	position:relative;
+	text-transform:none;
+	width:15rem;
+	left:38%;
+	top:80%;
 }

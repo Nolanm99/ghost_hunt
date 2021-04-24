@@ -1,3 +1,5 @@
+
+
 //SCENE AND RENDERER SETUP
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#66b8c4');
@@ -16,18 +18,15 @@ const planeGeom = new THREE.PlaneGeometry(700,700,1);
 const planeMaterial = new THREE.MeshStandardMaterial( {map: texture} );
 const plane = new THREE.Mesh(planeGeom, planeMaterial);
 plane.receiveShadow = true;
-scene.add(plane);
 
 //LIGHTING
 const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.3);
-scene.add(ambientLight);
 const directionalLight = new THREE.SpotLight(0xFFFFFF,0.7, 5000);
 directionalLight.position.set(100,0,500);
 directionalLight.castShadow = true;
-scene.add(directionalLight);
 
 //CAMERA
-var raycaster = new THREE.Raycaster();
+var raycaster = new THREE.Raycaster();  
 camera.position.z = 400;
 camera.position.y = -300;
 camera.lookAt(0,0,0);

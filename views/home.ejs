@@ -1,5 +1,7 @@
 <head>
     <script src='https://threejs.org/build/three.js'></script>
+    <script src='three/three.js'></script>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="../public/js/GLTFLoader.js"></script>
     
@@ -21,19 +23,32 @@
         
         <% if (user) { %>
         <div id="profile_image_container">
-            <img id="profile_image" class="img-circle" src="<%= user.thumbnail %>">
+            <a href="/profile">
+                <img id="profile_image" class="img-circle" src="<%= user.thumbnail %>">
+            </a>
         </div>
         <% } %>
 
-        <div class='card' id='site-menu' style="width: 50rem; height: 10rem;">
-            <button type="button" id="newPlayerBtn" class="btn btn-primary btn-lg">New Player</button>
+        <div class='card' id='site-menu'>
+
+            <% if (!user) { %>
+            <a id="google_login_btn" class="btn btn-outline-dark" href="/auth/google" role="button" >
+                <img width="20px" style="margin-bottom:3px; margin-right:5px" alt="Google sign-in" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" />
+                Login with Google
+            </a>
+            <% } %>
+
+            <button type="button" id="newPlayerBtn" class="btn btn-primary btn-lg">Play</button>
         </div>
     </div>
 
-    <script src="../public//js/scene_creation.js"></script>
-    <script src="../public//js/movement_functions.js"></script>
-    <script src="../public//js/constants.js"></script>
-    <script src="../public/js/client_main.js" defer></script>
+    <script src="../public/js/constants.js"></script>
+    <script src="../public/js/scene_config.js"></script>
+    <script src="../public/js/movement_functions.js"></script>
+    <script src="../public/js/socket_messages.js"></script>
+    <script src="../public/js/client_functions.js"></script>
+    
+    <script src="../public/js/main.js" defer></script>
 </body>
 
 

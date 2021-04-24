@@ -1,0 +1,83 @@
+socket.on('message', (message) => {
+    console.log(message);
+})
+
+socket.on('new player', (connectionID, color) => {
+    createOtherPlayer(connectionID, color, ()=> {
+    });
+});
+
+socket.on('player sync', (serverPlayerList)=> {
+    serverPlayerList.forEach( (player)=> { //for every current connection that started the game
+        createOtherPlayer(player.socketID, player.color, (importedCube, importedCone)=> {
+            importedCube.position.x = player.Xposition;
+            importedCube.position.y = player.Yposition;
+            importedCone.position.y = player.Yposition;
+            importedCone.position.y = player.Yposition;
+        });
+    });
+})
+
+socket.on('player movement', (connectionID, Xposition, Yposition)=> {
+    player = players.find(obj=>obj.socketID==connectionID);
+    flashlight = playersFlashlights.find(obj=>obj.socketID==connectionID);
+
+    player.position.x = Xposition;
+    player.position.y = Yposition;
+    flashlight.position.x = Xposition + Math.cos(player.rotation.z) * 37.5;
+    flashlight.position.y = Yposition + Math.sin(player.rotation.z) * 37.5;
+})
+
+socket.on('player flashlight on', (socketID)=> {
+    flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
+    if(typeof flashlight !== 'undefined') {
+        flashlight.visible = true;
+    }
+});
+socket.on('player flashlight off', (socketID)=> {
+    console.log('received flashlight off status');
+    flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
+    if(typeof flashlight !== 'undefined') {
+        flashlight.visible = false;
+    }
+});
+
+socket.on('battery status', (batteryLevel)=> {
+    selfPlayer = players.find(obj=>obj.socketID==socket.id);
+    flashLightBatteryProgressBarElement.style.width = String(batteryLevel).concat("%");
+});
+
+socket.on('player rotation', (socketID, newAngle)=> {   
+    player = players.find(obj=>obj.socketID==socketID);
+    flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
+
+    if(typeof player !== 'undefined') {
+        player.rotation.z = newAngle
+        flashlight.rotation.z = newAngle + Math.PI/2;
+        flashlight.position.x = player.position.x + Math.cos(player.rotation.z) * 37.5;
+        flashlight.position.y = player.position.y + Math.sin(player.rotation.z) * 37.5;
+    }
+});
+
+socket.on('player illuminated', (socketID, illuminatedStatus)=> {
+    player = players.find(obj=>obj.socketID==socketID);
+    player.illuminated = illuminatedStatus;
+    if(player.illuminated) {
+        player.material.color.set('#fcba03')
+    }
+    else {
+        newColor = '#'.concat(player.originalColor)
+        player.material.color.set(newColor);
+    }
+});
+
+socket.on('player disconnect', connectionID => {
+    disconnectedPlayer = players.filter(obj => {
+        return obj.socketID == connectionID;
+    });
+    players = players.filter(obj => {
+        return obj.socketID != connectionID;
+    });
+    console.log('DISCONNECTED: ', connectionID);
+    scene.remove(disconnectedPlayer[0]);
+})

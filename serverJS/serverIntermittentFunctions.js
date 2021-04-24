@@ -21,5 +21,12 @@ module.exports = {
                 io.to(player.socketID).emit('battery status', player.flashlightBatteryLevel);
             })
         }
+    },
+    printRoomsStatus: function(roomList) {
+        console.log('Current # of Rooms: ', roomList.length);
+        roomList.forEach(room => {
+            console.log('Room Players: ', room.playerList.length);
+        });
     }
+    
 }
