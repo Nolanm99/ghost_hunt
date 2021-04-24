@@ -4,7 +4,7 @@
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#66b8c4');
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer( {canvas: sceneCanvas} );
+const renderer = new THREE.WebGLRenderer( {canvas: sceneCanvas, antialias: true} );
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;

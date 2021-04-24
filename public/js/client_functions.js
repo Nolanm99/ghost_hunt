@@ -7,6 +7,7 @@ function selfCreatePlayer() {
                 if (o.name == 'Cube') importedCube = o;
                 if (o.name == 'Cone') importedCone = o;
             });
+            importedCube.movementLock = 0;
             importedCube.position.z = 12.5;
             importedCube.material = modelMaterial;
             importedCone.position.z = 12.5;
@@ -37,6 +38,7 @@ function createOtherPlayer(connectionID, color, callback) {
             if (o.name == 'Cube') importedCube = o;
             if (o.name == 'Cone') importedCone = o;
         });
+        importedCube.movementLock = false;
         importedCube.position.z = 12.5;
         importedCube.material = modelMaterial;
         importedCone.position.z = 12.5;

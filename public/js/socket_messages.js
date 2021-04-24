@@ -71,6 +71,21 @@ socket.on('player illuminated', (socketID, illuminatedStatus)=> {
     }
 });
 
+socket.on('game started', roomStatus => {
+    console.log('Game Started!');
+    gameStarted = 1;
+    
+    // Lock all players movement for 5 seconds
+    players.forEach(player => {
+        player.movementLock = true;
+    })
+    setTimeout(function() {
+        players.forEach(player => {
+            player.movementLock = false;
+        })
+    }, 5000);
+})
+
 socket.on('player disconnect', connectionID => {
     disconnectedPlayer = players.filter(obj => {
         return obj.socketID == connectionID;

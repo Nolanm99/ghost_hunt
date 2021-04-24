@@ -102,6 +102,17 @@ io.on('connection', socket => {
                 room.playerList.push(newPlayer);
                 newPlayer.roomID = room.roomID;
                 socket.join(room.roomID)
+
+                //If room has reached max players, start the game
+                if(room.playerList.length == room.MAX_PLAYERS && room.roomStatus == 0) {
+                    console.log('STARTING GAME FOR ROOM ', room.roomID);
+                    io.to(room.roomID).emit('game started', roomList);
+
+                    //Reset player positions
+
+
+                    room.roomStatus = 1;
+                }
             }
         })
 
@@ -210,11 +221,15 @@ io.on('connection', socket => {
         selectedPlayer = playerList.find(obj=>obj.socketID==socket.id);
         if(selectedPlayer) {
             selectedRoom = roomList.find(room => room.roomID == selectedPlayer.roomID);
+            
+            //socket.broadcast.emit('player disconnect', socket.id);
+            io.to(selectedRoom.roomID).emit('player disconnect', socket.id);
+
+            selectedRoom.playerList = selectedRoom.playerList.filter(obj => {
+                return obj.socketID != socket.id;
+            });
         }
         
-        //socket.broadcast.emit('player disconnect', socket.id);
-        io.to(selectedRoom.roomID).emit('player disconnect', socket.id);
-
         console.log('DISCONNECTED: ', socket.id)
         connectionList = connectionList.filter(obj => {
             return obj.socketID != socket.id;
@@ -223,15 +238,13 @@ io.on('connection', socket => {
             return obj.socketID != socket.id;
         });
 
-        selectedRoom.playerList = selectedRoom.playerList.filter(obj => {
-            return obj.socketID != socket.id;
-        });
     });
     setInterval(serverIntermittentFunctions.chargeBatteriesWhileFlashlightOff, 100, playerList);
     setInterval(serverIntermittentFunctions.updateBatteryStatus, 100, playerList, io);
 });
 
 setInterval(serverIntermittentFunctions.printRoomsStatus, 2000, roomList);
+//setInterval(serverIntermittentFunctions.sendRoomStatus, 2000, roomList, io);
 
 server.listen(PORT, "0.0.0.0", ()=> {
     console.log('Server running on port 3000');

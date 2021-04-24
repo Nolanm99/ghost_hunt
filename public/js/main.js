@@ -10,13 +10,14 @@ var selfPlayersCreated = 0;
 var players = [];
 var playersFlashlights = [];
 var selfPlayersIndex = -1;
+var gameStarted = 0;
 
 //ANIMATION LOOP
 function animate() {
     requestAnimationFrame(animate);
     selfPlayer = players.find(obj=>obj.socketID==socket.id);
     selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
-    if (selfPlayersCreated > 0) {
+    if (selfPlayersCreated > 0 && selfPlayer.movementLock == false) {
         if (window.Wpressed) {
             selfPlayer.position.y += PLAYER_VELOCITY;
             selfFlashLight.position.y += PLAYER_VELOCITY;
