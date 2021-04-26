@@ -79,11 +79,28 @@ socket.on('game started', roomStatus => {
     players.forEach(player => {
         player.movementLock = true;
     })
+    messageOverlay.innerText = "Starting in 5 seconds!";
     setTimeout(function() {
         players.forEach(player => {
             player.movementLock = false;
+            messageOverlay.innerText = "";
         })
     }, 5000);
+})
+
+socket.on('room status', room => {
+    gameStarted = room.roomStatus;
+})
+
+socket.on('selected ghost', socketID => {
+    console.log(`Ghost selected! ${socketID}`);
+    player = players.find(obj=>obj.socketID==socketID);
+    player.isGhost = true;
+
+    //Hide ghost (only if you aren't the ghost)
+    if(socket.id !== player.socketID) { //If you aren't the ghost
+        player.visible = false;
+    }
 })
 
 socket.on('player disconnect', connectionID => {

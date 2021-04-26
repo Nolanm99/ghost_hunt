@@ -23,14 +23,15 @@ module.exports = {
         }
     },
     printRoomsStatus: function(roomList) {
-        console.log('Current # of Rooms: ', roomList.length);
+        console.log('\nCurrent # of Rooms: ', roomList.length);
         roomList.forEach(room => {
             console.log('Room', room.roomID, 'players:', room.playerList.length);
+            room.playerList.forEach(player=>{console.log(player.socketID)})
         });
     },
     sendRoomStatus: function(roomList, io) {
         roomList.forEach(room => {
-            io.to(room.roomID).emit('room status', roomList);
+            //io.to(room.roomID).emit('room status', room);
         })
     }
     

@@ -7,6 +7,7 @@ function selfCreatePlayer() {
                 if (o.name == 'Cube') importedCube = o;
                 if (o.name == 'Cone') importedCone = o;
             });
+            importedCube.isGhost = false;
             importedCube.movementLock = 0;
             importedCube.position.z = 12.5;
             importedCube.material = modelMaterial;
@@ -38,6 +39,7 @@ function createOtherPlayer(connectionID, color, callback) {
             if (o.name == 'Cube') importedCube = o;
             if (o.name == 'Cone') importedCone = o;
         });
+        importedCube.isGhost = false;
         importedCube.movementLock = false;
         importedCube.position.z = 12.5;
         importedCube.material = modelMaterial;
@@ -54,10 +56,12 @@ function createOtherPlayer(connectionID, color, callback) {
         scene.add(importedCone);
         callback(importedCube, importedCone);
     });
+    console.log('New player joined! ', connectionID);
 }
 
 function LoadScene(scene,plane,ambientLight,directionalLight,) {
     scene.add(plane);
     scene.add(ambientLight);
     scene.add(directionalLight);
+
 }

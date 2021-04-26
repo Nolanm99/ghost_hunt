@@ -68,6 +68,7 @@ class Player {
         this.illuminated = false;
         this.flashlightBatteryLevel = 100;
         this.flashlightLockoutTimer = false;
+        this.isGhost = false;
     }
 }
 
@@ -103,14 +104,37 @@ io.on('connection', socket => {
                 newPlayer.roomID = room.roomID;
                 socket.join(room.roomID)
 
+                console.log('New Player Created: ', connectionID, color)
+                socket.to(newPlayer.roomID).emit('new player', connectionID, color);
+
                 //If room has reached max players, start the game
+                //START GAME///
                 if(room.playerList.length == room.MAX_PLAYERS && room.roomStatus == 0) {
                     console.log('STARTING GAME FOR ROOM ', room.roomID);
                     io.to(room.roomID).emit('game started', roomList);
 
                     //Reset player positions
+                    var playerCounter = 0;
+                    room.playerList.forEach(player => {
 
+                        player.Xposition = Math.round(Math.cos(playerCounter) * 150);
+                        player.Yposition = Math.round(Math.sin(playerCounter) * 150);  
+                        playerCounter += Math.PI/(room.MAX_PLAYERS-1);
+                    })
 
+                    //Send the new positions 0.2 seconds later
+                    setTimeout(function() {
+                        room.playerList.forEach(player => {
+                            io.to(room.roomID).emit('player movement', player.socketID, player.Xposition, player.Yposition);
+                        })
+                    }, 200);
+
+                    //Select a ghost character
+                    playerIdx = Math.round(Math.random() * room.MAX_PLAYERS) - 1;
+                    console.log(`player index ${playerIdx}`);
+                    room.playerList[playerIdx].isGhost = true;
+                    setTimeout(function() {io.to(room.roomID).emit('selected ghost', room.playerList[playerIdx].socketID)}, 200);
+                    
                     room.roomStatus = 1;
                 }
             }
@@ -129,8 +153,7 @@ io.on('connection', socket => {
             socket.join(newRoom.roomID)
         }
 
-        console.log('New Player Created: ', connectionID, color)
-        socket.to(newPlayer.roomID).emit('new player', connectionID, color);
+        
     });
 
    
@@ -228,6 +251,11 @@ io.on('connection', socket => {
             selectedRoom.playerList = selectedRoom.playerList.filter(obj => {
                 return obj.socketID != socket.id;
             });
+
+            //Reset the room status (back to waiting for players)
+            if(selectedRoom.playerList.length == 0) {
+                selectedRoom.roomStatus = 0;
+            }
         }
         
         console.log('DISCONNECTED: ', socket.id)
@@ -244,7 +272,7 @@ io.on('connection', socket => {
 });
 
 setInterval(serverIntermittentFunctions.printRoomsStatus, 2000, roomList);
-//setInterval(serverIntermittentFunctions.sendRoomStatus, 2000, roomList, io);
+setInterval(serverIntermittentFunctions.sendRoomStatus, 2000, roomList, io);
 
 server.listen(PORT, "0.0.0.0", ()=> {
     console.log('Server running on port 3000');

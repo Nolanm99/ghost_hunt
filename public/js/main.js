@@ -10,13 +10,20 @@ var selfPlayersCreated = 0;
 var players = [];
 var playersFlashlights = [];
 var selfPlayersIndex = -1;
-var gameStarted = 0;
+var gameStarted = 0; //0: pregame,1: in-game 
 
 //ANIMATION LOOP
 function animate() {
+    //console.log(Object.keys(socket))
+    roomInfo.innerText = `Socket: ${socket.id}, Room: `;
+    if(gameStarted == 0) {
+        messageOverlay.innerText = "Waiting for Players...";
+    }
+
     requestAnimationFrame(animate);
     selfPlayer = players.find(obj=>obj.socketID==socket.id);
     selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
+
     if (selfPlayersCreated > 0 && selfPlayer.movementLock == false) {
         if (window.Wpressed) {
             selfPlayer.position.y += PLAYER_VELOCITY;

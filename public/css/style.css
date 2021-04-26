@@ -49,3 +49,20 @@ body {
 	left:38%;
 	top:80%;
 }
+
+#overlay_message {
+	position: absolute;
+	text-align: center;
+	top:1%;
+	left:45%;
+	font-size: 75;
+	display: block;
+}
+
+#room_info {
+	position: absolute;
+	text-align: center;
+	top:1%;
+	font-size: 20;
+	display: block;
+}
