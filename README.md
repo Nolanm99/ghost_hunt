@@ -7,7 +7,11 @@ Using the keyboard and mouse, the "seekers" will search the room to find the gho
 
 # Technologies Used:
 Nodejs
+
 Websockets
+
 ThreeJS graphics
+
 Oauth authentication system
+
 MongoDB
