@@ -3,10 +3,8 @@ const path = require('path');
 const app = express();
 const http = require('http');
 const socketio = require('socket.io');
-const PORT = 3000;
 const server = http.createServer(app);
 const io = socketio(server)
-const PLAYER_VELOCITY = 2;
 const authRoutes = require('./routes/auth-routes');
 const profileRoutes = require('./routes/profile-routes');
 const passportSetup = require('./config/passport-setup');
@@ -14,16 +12,21 @@ const mongoose = require('mongoose');
 const cookieSession = require('cookie-session');
 const passport = require('passport');
 const keys = require('./config/keys')
+const server_constants = require('./serverJS/server_constants.js')
 
+//Load dependencies
+var serverIntermittentFunctions = require('./serverJS/serverIntermittentFunctions.js');
+var connectionList = [];
+var playerList = [];
+var roomList = [];
+
+app.set('view engine', 'ejs')
 app.use('/public/', express.static(path.join(__dirname, 'public')));
 app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/examples/js/')))
 app.use('/three/', express.static(path.join(__dirname, 'node_modules/three/build/')))
 
-//Set static folder
-app.set('view engine', 'ejs')
-
 app.use(cookieSession({
-    maxAge:24*60*60*1000,
+    maxAge:server_constants.server_settings.COOKIE_MAX_AGE,
     keys: [keys.session.cookieKey]
 }));
 
@@ -44,12 +47,8 @@ app.get('/', (req,res) => {
 
 
 
-//Load dependencies
-var serverIntermittentFunctions = require('./serverJS/serverIntermittentFunctions.js');
-var connectionList = [];
-var playerList = [];
-var roomList = [];
 
+//Construct Classes
 class Connection {
     constructor(id) {
         this.socketID = id;
@@ -165,16 +164,16 @@ io.on('connection', socket => {
         selectedRoom = roomList.find(room => room.roomID == selectedPlayer.roomID);
 
         if(direction == 1) {
-            selectedPlayer.Yposition += PLAYER_VELOCITY;
+            selectedPlayer.Yposition += server_constants.game_settings.PLAYER_VELOCITY;
         }
         else if(direction == 2) {
-            selectedPlayer.Xposition -= PLAYER_VELOCITY;
+            selectedPlayer.Xposition -= server_constants.game_settings.PLAYER_VELOCITY;
         }
         else if(direction == 3) {
-            selectedPlayer.Yposition -= PLAYER_VELOCITY;
+            selectedPlayer.Yposition -= server_constants.game_settings.PLAYER_VELOCITY;
         }
         else if(direction == 4) {
-            selectedPlayer.Xposition += PLAYER_VELOCITY;
+            selectedPlayer.Xposition += server_constants.game_settings.PLAYER_VELOCITY;
         }
 
         if (Math.abs(selectedPlayer.Xposition) > 250 || Math.abs(selectedPlayer.Yposition) > 250) {
@@ -285,8 +284,8 @@ io.on('connection', socket => {
 setInterval(serverIntermittentFunctions.printRoomsStatus, 2000, roomList);
 setInterval(serverIntermittentFunctions.sendRoomStatus, 2000, roomList, io);
 
-server.listen(PORT, "0.0.0.0", ()=> {
-    console.log('Server running on port 3000');
+server.listen(server_constants.server_settings.PORT, "0.0.0.0", ()=> {
+    console.log(`Server running on port ${server_constants.server_settings.PORT}`);
 });
 
 
