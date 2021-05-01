@@ -16,6 +16,7 @@ function selfCreatePlayer() {
             importedCube.originalColor = importedCube.material.color.getHexString();
             importedCube.socketID = socket.id;
             importedCube.flashlightBattery = 100;
+            importedCube.healthLevel = 100;
             importedCone.socketID = socket.id;
             importedCone.visible = false;
             players.push(importedCube);
@@ -48,6 +49,7 @@ function createOtherPlayer(connectionID, color, callback) {
         importedCube.originalColor = importedCube.material.color.getHexString();
         importedCube.socketID = connectionID;
         importedCube.flashlightBattery = 100;
+        importedCube.healthLevel = 100;
         importedCone.socketID = connectionID;
         importedCone.visible = false;
         players.push(importedCube);
@@ -64,4 +66,13 @@ function LoadScene(scene,plane,ambientLight,directionalLight,) {
     scene.add(ambientLight);
     scene.add(directionalLight);
 
+}
+
+function removePlayerFromGame(connectionIDToRemove) {
+    disconnectedPlayer = players.find(obj => obj.socketID == connectionIDToRemove);
+    players = players.filter(obj => {
+        return obj.socketID != connectionIDToRemove;
+    });
+    console.log(`DISCONNECTED: ${connectionIDToRemove}`);
+    scene.remove(disconnectedPlayer);
 }

@@ -10,21 +10,24 @@ var selfPlayersCreated = 0;
 var players = [];
 var playersFlashlights = [];
 var selfPlayersIndex = -1;
-var gameStarted = 0; //0: pregame,1: in-game 
+var gameStarted = 0; //0: pregame, 1: in-game,
+var gameOver = false; 
 
 //ANIMATION LOOP
 function animate() {
     //console.log(Object.keys(socket))
     roomInfo.innerText = `Socket: ${socket.id}, Room: `;
-    if(gameStarted == 0) {
-        messageOverlay.innerText = "Waiting for Players...";
+    if(gameStarted == 0) {messageOverlay.innerText = "Waiting for Players...";}
+    if(gameOver == true) {
+        messageOverlay.innerText = "Game Over!";
+        leaveGameBtn.style.display = "block";
     }
 
     requestAnimationFrame(animate);
     selfPlayer = players.find(obj=>obj.socketID==socket.id);
     selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
 
-    if (selfPlayersCreated > 0 && selfPlayer.movementLock == false) {
+    if (selfPlayer && selfPlayer.movementLock == false) {
         if (window.Wpressed) {
             selfPlayer.position.y += PLAYER_VELOCITY;
             selfFlashLight.position.y += PLAYER_VELOCITY;
@@ -62,7 +65,7 @@ function animate() {
                         cube.object.material.color.set('#fcba03')
                         cube.object.illuminatedStartTime = date.getTime();
                         cube.object.illuminated = true;
-                        socket.emit('player illuminated', cube.object.socketID, cube.object.illuminated);
+                        socket.emit('player illuminated', cube.object.socketID, true);
                     })
                 }
             }
@@ -85,8 +88,9 @@ document.addEventListener("mouseup", onMouseUp, false);
 
 newPlayerBtn.addEventListener('click', () => {
     selfCreatePlayer();
-    siteMenu.style.display = "none";
+    siteMenu.style.display                 = "none";
     flashLightBatteryElement.style.display = "block";
+    healthStatusCardElement.style.display  = "block";
 })
 
 LoadScene(scene, plane, ambientLight, directionalLight);

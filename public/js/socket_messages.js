@@ -30,8 +30,15 @@ socket.on('player movement', (connectionID, Xposition, Yposition)=> {
 
 socket.on('player flashlight on', (socketID)=> {
     flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
+    player = players.find(obj=>obj.socketID==socketID)
     if(typeof flashlight !== 'undefined') {
-        flashlight.visible = true;
+        if(player.isGhost == true && socket.id == player.socketID) {
+            //if flashlight belongs to ghost, and the ghost is you (lol), turn it on
+            flashlight.visible = true;
+        }
+        else if (player.isGhost == false) {
+            flashlight.visible = true;
+        }
     }
 });
 socket.on('player flashlight off', (socketID)=> {
@@ -45,6 +52,18 @@ socket.on('player flashlight off', (socketID)=> {
 socket.on('battery status', (batteryLevel)=> {
     selfPlayer = players.find(obj=>obj.socketID==socket.id);
     flashLightBatteryProgressBarElement.style.width = String(batteryLevel).concat("%");
+});
+
+socket.on('health status', (healthLevel)=> {
+    console.log(`received new health level ${healthLevel}`);
+    selfPlayer = players.find(obj=>obj.socketID==socket.id);
+    selfPlayer.healthLevel = healthLevel
+    healthProgressBarElement.style.width = String(healthLevel).concat("%");
+
+    if(selfPlayer.healthLevel <= 0) {
+        removePlayerFromGame(socket.id)
+        gameOver = true;
+    }
 });
 
 socket.on('player rotation', (socketID, newAngle)=> {   
@@ -94,22 +113,21 @@ socket.on('room status', room => {
 
 socket.on('selected ghost', socketID => {
     console.log(`Ghost selected! ${socketID}`);
-    player = players.find(obj=>obj.socketID==socketID);
-    player.isGhost = true;
+    ghost = players.find(obj=>obj.socketID==socketID);
+    ghost.isGhost = true;
 
+    console.log(`I AM ${socket.id}`)
     //Hide ghost (only if you aren't the ghost)
-    if(socket.id !== player.socketID) { //If you aren't the ghost
-        player.visible = false;
+    if(socket.id !== ghost.socketID) { //If you aren't the ghost
+        
+        setTimeout(function() {
+            console.log(`HIDING ${ghost.socketID}`);
+            ghost.visible = false;
+            
+        }, 5000)
     }
 })
 
 socket.on('player disconnect', connectionID => {
-    disconnectedPlayer = players.filter(obj => {
-        return obj.socketID == connectionID;
-    });
-    players = players.filter(obj => {
-        return obj.socketID != connectionID;
-    });
-    console.log('DISCONNECTED: ', connectionID);
-    scene.remove(disconnectedPlayer[0]);
+    removePlayerFromGame(connectionID);
 })

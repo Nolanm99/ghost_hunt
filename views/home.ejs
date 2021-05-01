@@ -20,6 +20,18 @@
                 </div>
             </div>
         </div>
+
+        <div class='card' id='healthStatusCard' style="display:none">
+            <div class="healthStatus" id='healthStatusBar'>
+                <div class="progress">
+                    <div id="playerHealth" class="progress-bar progress-bar-striped bg-danger progress-bar-animated" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <a href="/" type="button" id="leaveGameBtn" class="btn btn-primary btn-lg" style="display: none;">Leave Game</a>
+        </div>
         
         <% if (user) { %>
         <div id="profile_image_container">
@@ -42,11 +54,11 @@
         </div>
 
         <div id="overlay_message">
-            sdsdsd
+            overlay_default
         </div>
 
         <div id="room_info">
-            asds
+            room_info_default
         </div>
 
     </div>

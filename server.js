@@ -67,6 +67,7 @@ class Player {
         this.rotationAngle = 0;
         this.illuminated = false;
         this.flashlightBatteryLevel = 100;
+        this.healthLevel = 100;
         this.flashlightLockoutTimer = false;
         this.isGhost = false;
     }
@@ -96,7 +97,7 @@ io.on('connection', socket => {
 
         //Find a room to put the player in
         roomList.forEach(room => {
-            if(room.playerList.length < room.MAX_PLAYERS && newPlayer.roomID == 0) {
+            if(room.playerList.length < room.MAX_PLAYERS && newPlayer.roomID == 0 && room.roomStatus ==0) {
                 //Send the room's player list for synchronization
                 socket.emit('player sync', room.playerList);   
                 
@@ -130,7 +131,7 @@ io.on('connection', socket => {
                     }, 200);
 
                     //Select a ghost character
-                    playerIdx = Math.round(Math.random() * room.MAX_PLAYERS) - 1;
+                    playerIdx = Math.round(Math.random() * (room.MAX_PLAYERS - 1));
                     console.log(`player index ${playerIdx}`);
                     room.playerList[playerIdx].isGhost = true;
                     setTimeout(function() {io.to(room.roomID).emit('selected ghost', room.playerList[playerIdx].socketID)}, 200);
@@ -230,13 +231,22 @@ io.on('connection', socket => {
     });
 
     socket.on('player illuminated', (socketID, illuminatedStatus)=> {
-        selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
-        selectedPlayer.illuminated = illuminatedStatus;
-        io.emit('player illuminated', socketID, illuminatedStatus);
-        setTimeout(function() {
-            selectedPlayer.illuminated = !illuminatedStatus;
-            io.emit('player illuminated', socketID, !illuminatedStatus);
-        }, 1000); //flip back color after 1 seconds
+        illuminatedPlayer = playerList.find(obj=>obj.socketID==socketID);
+
+        if(illuminatedPlayer.illuminated == false) {
+            illuminatedPlayer.illuminated = illuminatedStatus;
+
+            //Subtract health from player
+            illuminatedPlayer.healthLevel -= 20;
+            console.log(`sending new health level to ${illuminatedPlayer.socketID}, ${illuminatedPlayer.healthLevel}`)
+            io.to(illuminatedPlayer.socketID).emit('health status', illuminatedPlayer.healthLevel);
+
+            io.emit('player illuminated', socketID, illuminatedStatus);
+            setTimeout(function() {
+                illuminatedPlayer.illuminated = false;
+                io.emit('player illuminated', socketID, false);
+            }, 1000); //flip back color after 1 seconds
+        }
     });
 
     //When the client disconnects
@@ -254,6 +264,7 @@ io.on('connection', socket => {
 
             //Reset the room status (back to waiting for players)
             if(selectedRoom.playerList.length == 0) {
+                console.log(`players in room ${selectedRoom.roomID}: ${selectedRoom.playerList.length}, setting back to pregame lobby`)
                 selectedRoom.roomStatus = 0;
             }
         }

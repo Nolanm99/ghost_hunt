@@ -7,6 +7,13 @@
 position: absolute;
 }
 #newPlayerBtn {
+	position: absolute;
+	width: 10rem;
+	top:25%;
+	left:43%;
+}
+
+#leaveGameBtn {
 	position: relative;
 	width: 10rem;
 	top:25%;
@@ -30,6 +37,13 @@ body {
 	position: absolute;
 	left:27%;
 	top: 1%;
+}
+
+#healthStatusCard {
+	width: 50rem; 
+	position: absolute;
+	left:27%;
+	top: 5%;
 }
 
 #profile_image_container {
