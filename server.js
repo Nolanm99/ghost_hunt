@@ -94,6 +94,10 @@ io.on('connection', socket => {
         newPlayer = new Player(connectionID, color)
         playerList.push(newPlayer);
 
+        if(server_constants.server_settings.DEBUG_MODE) {
+            io.to(connectionID).emit('debug mode');
+        }
+
         //Find a room to put the player in
         roomList.forEach(room => {
             if(room.playerList.length < room.MAX_PLAYERS && newPlayer.roomID == 0 && room.roomStatus ==0) {

@@ -12,11 +12,11 @@ var playersFlashlights = [];
 var selfPlayersIndex = -1;
 var gameStarted = 0; //0: pregame, 1: in-game,
 var gameOver = false; 
+var debugMode = false;
 
 //ANIMATION LOOP
 function animate() {
-    //console.log(Object.keys(socket))
-    roomInfo.innerText = `Socket: ${socket.id}, Room: `;
+    if(debugMode) {roomInfo.innerText = `Socket: ${socket.id}, Room: `;}
     if(gameStarted == 0) {messageOverlay.innerText = "Waiting for Players...";}
     if(gameOver == true) {
         messageOverlay.innerText = "Game Over!";

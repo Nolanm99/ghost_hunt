@@ -65,10 +65,9 @@ body {
 }
 
 #overlay_message {
-	position: absolute;
+	position: relative;
 	text-align: center;
-	top:1%;
-	left:45%;
+	padding-top: 10%;
 	font-size: 75;
 	display: block;
 }
@@ -84,5 +83,4 @@ body {
 .progress-bar-vertical {
 	transform: rotate(-90deg);
 	left: 5%;
-
 }

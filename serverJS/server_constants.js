@@ -1,6 +1,6 @@
 module.exports = {
     server_settings: {
-        DEBUG_MODE:true,
+        DEBUG_MODE:false,
         PORT:3000,
         COOKIE_MAX_AGE:24*60*60*1000
     },

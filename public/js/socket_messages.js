@@ -2,6 +2,10 @@ socket.on('message', (message) => {
     console.log(message);
 })
 
+socket.on('debug mode', () => {
+    debugMode = true;
+})
+
 socket.on('new player', (connectionID, color) => {
     createOtherPlayer(connectionID, color, ()=> {
     });
