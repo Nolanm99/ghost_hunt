@@ -180,11 +180,11 @@ io.on('connection', socket => {
             selectedPlayer.Xposition += server_constants.game_settings.PLAYER_VELOCITY;
         }
 
-        if (Math.abs(selectedPlayer.Xposition) > 250 || Math.abs(selectedPlayer.Yposition) > 250) {
-            if (selectedPlayer.Xposition > 250) selectedPlayer.Xposition = 250;
-            else if (selectedPlayer.Xposition < -250) selectedPlayer.Xposition = -250;
-            else if (selectedPlayer.Yposition > 250) selectedPlayer.Yposition = 250;
-            else if (selectedPlayer.Yposition < -250) selectedPlayer.Yposition = -250;
+        if (Math.abs(selectedPlayer.Xposition) > server_constants.game_settings.MAP_X_EXTENTS/2 || Math.abs(selectedPlayer.Yposition) > server_constants.game_settings.MAP_Y_EXTENTS/2) {
+            if (selectedPlayer.Xposition > server_constants.game_settings.MAP_X_EXTENTS/2) selectedPlayer.Xposition = server_constants.game_settings.MAP_X_EXTENTS/2;
+            else if (selectedPlayer.Xposition < -1*server_constants.game_settings.MAP_X_EXTENTS/2) selectedPlayer.Xposition = -1*server_constants.game_settings.MAP_X_EXTENTS/2;
+            else if (selectedPlayer.Yposition > server_constants.game_settings.MAP_Y_EXTENTS/2) selectedPlayer.Yposition = server_constants.game_settings.MAP_Y_EXTENTS/2;
+            else if (selectedPlayer.Yposition < -1*server_constants.game_settings.MAP_Y_EXTENTS/2) selectedPlayer.Yposition = -1*server_constants.game_settings.MAP_Y_EXTENTS/2;
 
             io.to(selectedRoom.roomID).emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
         }

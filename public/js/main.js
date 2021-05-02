@@ -1,5 +1,3 @@
-//import {GLTFLoader} from 'GTLFLoader2.js'
-const loader = new THREE.GLTFLoader();
 var mouse = new THREE.Vector2();
 var playerDirection = new THREE.Vector3();
 var date = new Date();
@@ -93,5 +91,6 @@ newPlayerBtn.addEventListener('click', () => {
     healthStatusCardElement.style.display  = "block";
 })
 
+//loadMap(()=>{})
 LoadScene(scene, plane, ambientLight, directionalLight);
 animate();

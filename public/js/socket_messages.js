@@ -83,14 +83,18 @@ socket.on('player rotation', (socketID, newAngle)=> {
 });
 
 socket.on('player illuminated', (socketID, illuminatedStatus)=> {
-    player = players.find(obj=>obj.socketID==socketID);
-    player.illuminated = illuminatedStatus;
-    if(player.illuminated) {
-        player.material.color.set('#fcba03')
+    illuminatedPlayer = players.find(obj=>obj.socketID==socketID);
+    illuminatedPlayer.illuminated = illuminatedStatus;
+    if(illuminatedPlayer.illuminated) {
+        if(illuminatedPlayer.isGhost && socket.id !== illuminatedPlayer.socketID) {
+            illuminatedPlayer.visible = true;
+            setTimeout(function() {illuminatedPlayer.visible = false},1000);
+        }
+        illuminatedPlayer.material.color.set('#fcba03');
     }
     else {
-        newColor = '#'.concat(player.originalColor)
-        player.material.color.set(newColor);
+        newColor = '#'.concat(illuminatedPlayer.originalColor)
+        illuminatedPlayer.material.color.set(newColor);
     }
 });
 
