@@ -91,6 +91,6 @@ newPlayerBtn.addEventListener('click', () => {
     healthStatusCardElement.style.display  = "block";
 })
 
-//loadMap(()=>{})
+loadMap(()=>{})
 LoadScene(scene, plane, ambientLight, directionalLight);
 animate();

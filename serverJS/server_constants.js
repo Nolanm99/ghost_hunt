@@ -7,6 +7,6 @@ module.exports = {
     game_settings: {
         PLAYER_VELOCITY:2,
         MAP_X_EXTENTS:1000,
-        MAP_Y_EXTENTS:750,
+        MAP_Y_EXTENTS:1000,
     }
 };

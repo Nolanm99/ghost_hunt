@@ -4,15 +4,14 @@ function selfCreatePlayer() {
         loader.load('/public/assets/box_v1.1_scaling.glb', function (gltf) {
             modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
             gltf.scene.traverse((o) => {
-                console.log(o)
                 if (o.name == 'Cube') importedCube = o;
                 if (o.name == 'Cone') importedCone = o;
             });
             importedCube.isGhost = false;
             importedCube.movementLock = 0;
-            importedCube.position.z = 12.5;
+            importedCube.position.z = 0;
             importedCube.material = modelMaterial;
-            importedCone.position.z = 12.5;
+            importedCone.position.z = 0;
             importedCube.castShadow = true;
             importedCube.originalColor = importedCube.material.color.getHexString();
             importedCube.socketID = socket.id;
@@ -43,9 +42,9 @@ function createOtherPlayer(connectionID, color, callback) {
         });
         importedCube.isGhost = false;
         importedCube.movementLock = false;
-        importedCube.position.z = 12.5;
+        importedCube.position.z = 0;
         importedCube.material = modelMaterial;
-        importedCone.position.z = 12.5;
+        importedCone.position.z = 0;
         importedCube.castShadow = true;
         importedCube.originalColor = importedCube.material.color.getHexString();
         importedCube.socketID = connectionID;
@@ -63,7 +62,7 @@ function createOtherPlayer(connectionID, color, callback) {
 }
 
 function LoadScene(scene,plane,ambientLight,directionalLight,) {
-    scene.add(plane);
+    //scene.add(plane);
     scene.add(ambientLight);
     scene.add(directionalLight);
 

@@ -40,7 +40,8 @@ function onMouseMove(event) {
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
         raycaster.setFromCamera(mouse.clone(), camera);
-        intersects = raycaster.intersectObject(scene.children[0]);
+        //console.log(scene.children)
+        intersects = raycaster.intersectObject(scene.children[2]);
     
         
         if (intersects.length > 0) {

@@ -35,7 +35,7 @@ body {
 #flashLightStatusCard {
 	width: 30rem; 
 	position: absolute;
-	left:15%;
+	left:5%;
 	top: 48%;
 }
 
@@ -67,7 +67,8 @@ body {
 #overlay_message {
 	position: relative;
 	text-align: center;
-	padding-top: 10%;
+	color: white;
+	padding-top: 5%;
 	font-size: 75;
 	display: block;
 }

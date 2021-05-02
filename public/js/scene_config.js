@@ -11,6 +11,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 //PLANE
+
 texture = new THREE.TextureLoader().load('/public/assets/checker.png');
 texture.wrapS = THREE.RepeatWrapping;
 texture.wrapT = THREE.RepeatWrapping;
@@ -21,36 +22,37 @@ const plane = new THREE.Mesh(planeGeom, planeMaterial);
 plane.receiveShadow = true;
 
 
+
 //MAP LOADING
-/*
+
 function loadMap(callback) {
-    loader.load('/public/assets/map_v0.0.glb', function (gltf) {
-        //modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
+    loader.load('/public/assets/maps/map_v0.1.glb', function (gltf) {
+        modelMaterial = new THREE.MeshStandardMaterial( {'color': 'red'} );
         gltf.scene.traverse((o) => {
-            if(o.name == "Cube") {importedMaps.push(o)}
+            if(o.name == "Plane") {importedMaps.push(o)}
         });
         
-        importedMaps[0].rotation.x = 80;
+        importedMaps[0].rotation.x = Math.PI/2;
+        importedMaps[0].material = modelMaterial;
+        importedMaps[0].receiveShadow = true;
+        importedMaps[0].castShadow = true;
         
         scene.add(importedMaps[0])
         callback(importedMaps[0])
-        //scene.add(importedMap);
-    
-        //callback(importedCube, importedCone);
     });
 }
-*/
+
 
 
 //LIGHTING
 const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.3);
 const directionalLight = new THREE.SpotLight(0xFFFFFF,0.7, 5000);
-directionalLight.position.set(100,0,500);
+directionalLight.position.set(300,0,600);
 directionalLight.castShadow = true;
 
 //CAMERA
 var raycaster = new THREE.Raycaster();  
-camera.position.z = 300;
+camera.position.z = 550;
 camera.position.y = 0;
 camera.position.x = 0;
 camera.lookAt(0,0,0);
