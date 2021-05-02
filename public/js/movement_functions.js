@@ -52,8 +52,8 @@ function onMouseMove(event) {
         playerFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
         player.rotation.z = angle
         playerFlashLight.rotation.z = angle + Math.PI/2;
-        playerFlashLight.position.x = selfPlayer.position.x + Math.cos(selfPlayer.rotation.z) * 37.5;
-        playerFlashLight.position.y = selfPlayer.position.y + Math.sin(selfPlayer.rotation.z) * 37.5;
+        playerFlashLight.position.x = selfPlayer.position.x + Math.cos(selfPlayer.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
+        playerFlashLight.position.y = selfPlayer.position.y + Math.sin(selfPlayer.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
         socket.emit('player rotation', socket.id, angle)
     }
 }

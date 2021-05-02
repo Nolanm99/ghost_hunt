@@ -28,8 +28,8 @@ socket.on('player movement', (connectionID, Xposition, Yposition)=> {
 
     player.position.x = Xposition;
     player.position.y = Yposition;
-    flashlight.position.x = Xposition + Math.cos(player.rotation.z) * 37.5;
-    flashlight.position.y = Yposition + Math.sin(player.rotation.z) * 37.5;
+    flashlight.position.x = Xposition + Math.cos(player.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
+    flashlight.position.y = Yposition + Math.sin(player.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
 })
 
 socket.on('player flashlight on', (socketID)=> {
@@ -77,8 +77,8 @@ socket.on('player rotation', (socketID, newAngle)=> {
     if(typeof player !== 'undefined') {
         player.rotation.z = newAngle
         flashlight.rotation.z = newAngle + Math.PI/2;
-        flashlight.position.x = player.position.x + Math.cos(player.rotation.z) * 37.5;
-        flashlight.position.y = player.position.y + Math.sin(player.rotation.z) * 37.5;
+        flashlight.position.x = player.position.x + Math.cos(player.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
+        flashlight.position.y = player.position.y + Math.sin(player.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
     }
 });
 
@@ -124,14 +124,10 @@ socket.on('selected ghost', socketID => {
     ghost = players.find(obj=>obj.socketID==socketID);
     ghost.isGhost = true;
 
-    console.log(`I AM ${socket.id}`)
     //Hide ghost (only if you aren't the ghost)
     if(socket.id !== ghost.socketID) { //If you aren't the ghost
-        
         setTimeout(function() {
-            console.log(`HIDING ${ghost.socketID}`);
             ghost.visible = false;
-            
         }, 5000)
     }
 })

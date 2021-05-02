@@ -50,7 +50,7 @@ directionalLight.castShadow = true;
 
 //CAMERA
 var raycaster = new THREE.Raycaster();  
-camera.position.z = 500;
+camera.position.z = 300;
 camera.position.y = 0;
 camera.position.x = 0;
 camera.lookAt(0,0,0);

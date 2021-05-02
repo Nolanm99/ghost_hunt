@@ -56,7 +56,7 @@ function animate() {
                 playerLightRayCaster.set(selfPlayer.position, playerDirection);
                 intersects = playerLightRayCaster.intersectObjects(players);
                 intersects = intersects.filter(function (obj) {
-                    return obj.distance <= 50;
+                    return obj.distance <= FLASHLIGHT_LENGTH;
                 })
                 if (intersects.length) {
                     intersects.forEach((cube)=> {

@@ -1,9 +1,10 @@
 function selfCreatePlayer() {
     if(selfPlayersCreated < PLAYER_CREATION_LIMIT) {
         color = '#'.concat(Math.floor(Math.random()*16777215).toString(16)); // create material with random color
-        loader.load('/public/assets/box.glb', function (gltf) {
+        loader.load('/public/assets/box_v1.1_scaling.glb', function (gltf) {
             modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
             gltf.scene.traverse((o) => {
+                console.log(o)
                 if (o.name == 'Cube') importedCube = o;
                 if (o.name == 'Cone') importedCone = o;
             });
@@ -34,7 +35,7 @@ function selfCreatePlayer() {
 }
 
 function createOtherPlayer(connectionID, color, callback) {
-    loader.load('/public/assets/box.glb', function (gltf) {
+    loader.load('/public/assets/box_v1.1_scaling.glb', function (gltf) {
         modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
         gltf.scene.traverse((o) => {
             if (o.name == 'Cube') importedCube = o;

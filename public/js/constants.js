@@ -15,6 +15,9 @@ const healthProgressBarElement = document.getElementById('playerHealth');
 const PLAYER_CREATION_LIMIT = 1;
 const SPHERE_RADIUS = 10;
 const PLAYER_VELOCITY = 2;
+const FLASHLIGHT_DIST_FROM_PLAYER = 17.5;
+const FLASHLIGHT_LENGTH = 45.4;
+
 const playerLightRayCaster = new THREE.Raycaster();
 
 const loader = new THREE.GLTFLoader();
