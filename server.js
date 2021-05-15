@@ -190,7 +190,7 @@ io.on('connection', socket => {
         }
 
         //Send player movement data to players in the same room
-        io.to(selectedRoom.roomID).emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
+        socket.to(selectedRoom.roomID).emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
 
     });
 

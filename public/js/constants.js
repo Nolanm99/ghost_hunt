@@ -13,7 +13,7 @@ const healthStatusCardElement = document.getElementById('healthStatusCard');
 const healthProgressBarElement = document.getElementById('playerHealth');
 
 const PLAYER_CREATION_LIMIT = 1;
-const SPHERE_RADIUS = 10;
+const SPHERE_RADIUS = 2;
 const PLAYER_VELOCITY = 2;
 const FLASHLIGHT_DIST_FROM_PLAYER = 25;
 const FLASHLIGHT_LENGTH = 68.1;

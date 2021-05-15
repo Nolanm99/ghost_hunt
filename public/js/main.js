@@ -1,16 +1,20 @@
 var mouse = new THREE.Vector2();
 var playerDirection = new THREE.Vector3();
+var wallCollisionRayDirections = [];
 var date = new Date();
 var intersects = [];
 var mouseDown = false;
 var mouseUp = true;
 var selfPlayersCreated = 0;
 var players = [];
+var playerCollisionBoxes = [];
 var playersFlashlights = [];
 var selfPlayersIndex = -1;
 var gameStarted = 0; //0: pregame, 1: in-game,
 var gameOver = false; 
 var debugMode = false;
+var checkWall = false;
+
 
 //ANIMATION LOOP
 function animate() {
@@ -21,31 +25,87 @@ function animate() {
         leaveGameBtn.style.display = "block";
     }
 
-    requestAnimationFrame(animate);
     selfPlayer = players.find(obj=>obj.socketID==socket.id);
     selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
-
+    
     if (selfPlayer && selfPlayer.movementLock == false) {
+
+        selfCollisionBox = playerCollisionBoxes.find(obj=>obj.socketID==socket.id);
+        selfCollisionBox.setFromObject(selfPlayer);
+
         if (window.Wpressed) {
-            selfPlayer.position.y += PLAYER_VELOCITY;
-            selfFlashLight.position.y += PLAYER_VELOCITY;
-            socket.emit('player movement', socket.id, 1) //1 = up
+            collisionPreCheck = checkWallIntersection(selfCollisionBox)
+            if(!collisionPreCheck) {
+                selfPlayer.position.y += PLAYER_VELOCITY;
+                selfFlashLight.position.y += PLAYER_VELOCITY;
+                selfCollisionBox.setFromObject(selfPlayer);
+                socket.emit('player movement', socket.id, 1) //1 = up
+
+                //If hit a wall after this move, move back.
+                collisionPostCheck = checkWallIntersection(selfCollisionBox)
+                if(collisionPostCheck) {
+                    selfPlayer.position.y -= PLAYER_VELOCITY;
+                    selfFlashLight.position.y -= PLAYER_VELOCITY;
+                    selfCollisionBox.setFromObject(selfPlayer);
+                    socket.emit('player movement', socket.id, 3) //3 = down
+                }
+            }
         }
         if (window.Apressed) {
-            selfPlayer.position.x -= PLAYER_VELOCITY;
-            selfFlashLight.position.x -= PLAYER_VELOCITY;
-            socket.emit('player movement', socket.id, 2) //2 = left
+            collisionPreCheck = checkWallIntersection(selfCollisionBox)
+            if(!collisionPreCheck) {
+                selfPlayer.position.x -= PLAYER_VELOCITY;
+                selfFlashLight.position.x -= PLAYER_VELOCITY;
+                selfCollisionBox.setFromObject(selfPlayer);
+                socket.emit('player movement', socket.id, 2) //2 = left
+
+                //If hit a wall after this move, move back.
+                collisionPostCheck = checkWallIntersection(selfCollisionBox)
+                if(collisionPostCheck) {
+                    selfPlayer.position.x += PLAYER_VELOCITY;
+                    selfFlashLight.position.x += PLAYER_VELOCITY;
+                    selfCollisionBox.setFromObject(selfPlayer);
+                    socket.emit('player movement', socket.id, 4) //4 = right
+                }
+            }
         }
         if (window.Spressed) {
-            selfPlayer.position.y -= PLAYER_VELOCITY;
-            selfFlashLight.position.y -= PLAYER_VELOCITY;
-            socket.emit('player movement', socket.id, 3) //3 = down
+            collisionPreCheck = checkWallIntersection(selfCollisionBox)
+            if(!collisionPreCheck) {
+                selfPlayer.position.y -= PLAYER_VELOCITY;
+                selfFlashLight.position.y -= PLAYER_VELOCITY;
+                selfCollisionBox.setFromObject(selfPlayer);
+                socket.emit('player movement', socket.id, 3) //3 = down
+
+                //If hit a wall after this move, move back.
+                collisionPostCheck = checkWallIntersection(selfCollisionBox)
+                if(collisionPostCheck) {
+                    selfPlayer.position.y += PLAYER_VELOCITY;
+                    selfFlashLight.position.y += PLAYER_VELOCITY;
+                    selfCollisionBox.setFromObject(selfPlayer);
+                    socket.emit('player movement', socket.id, 1) //1 = up
+                }
+            }
         }
         if (window.Dpressed) {
-            selfPlayer.position.x += PLAYER_VELOCITY;
-            selfFlashLight.position.x += PLAYER_VELOCITY;
-            socket.emit('player movement', socket.id, 4) //4 = right
+            collisionPreCheck = checkWallIntersection(selfCollisionBox)
+            if(!collisionPreCheck) {
+                selfPlayer.position.x += PLAYER_VELOCITY;
+                selfFlashLight.position.x += PLAYER_VELOCITY;
+                selfCollisionBox.setFromObject(selfPlayer);
+                socket.emit('player movement', socket.id, 4) //4 = right
+
+                //If hit a wall after this move, move back.
+                collisionPostCheck = checkWallIntersection(selfCollisionBox)
+                if(collisionPostCheck) {
+                    selfPlayer.position.x -= PLAYER_VELOCITY;
+                    selfFlashLight.position.x -= PLAYER_VELOCITY;
+                    selfCollisionBox.setFromObject(selfPlayer);
+                    socket.emit('player movement', socket.id, 2) //2 = left
+                }
+            }
         }
+
         if (mouseDown) {
             //send request to turn flashlight on
             socket.emit('player flashlight on', socket.id);
@@ -75,7 +135,9 @@ function animate() {
             }
         }
     }
+    //scene.simulate()
     renderer.render(scene, camera);
+    requestAnimationFrame(animate);
 }
 
 document.addEventListener("keydown", onDocumentKeyDown, false);

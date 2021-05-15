@@ -33,15 +33,17 @@ function onDocumentKeyUp(event) {
     }};
 
 function onMouseMove(event) {
+    selfPlayer = players.find(obj=>obj.socketID==socket.id);
     if(typeof selfPlayer !== 'undefined') {
-        selfPlayer = players.find(obj=>obj.socketID==socket.id);
         selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
         mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
         mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
         raycaster.setFromCamera(mouse.clone(), camera);
-        //console.log(scene.children)
-        intersects = raycaster.intersectObject(scene.children[2]);
+
+        mapPlane = mapAssets.find(obj=>obj.name == "Plane");
+
+        intersects = raycaster.intersectObject(mapPlane);
     
         
         if (intersects.length > 0) {
@@ -56,6 +58,22 @@ function onMouseMove(event) {
         playerFlashLight.position.x = selfPlayer.position.x + Math.cos(selfPlayer.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
         playerFlashLight.position.y = selfPlayer.position.y + Math.sin(selfPlayer.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
         socket.emit('player rotation', socket.id, angle)
+    }
+}
+
+function checkWallIntersection(playerCollisionBox) {
+    selfPlayer = players.find(obj=>obj.socketID==socket.id);
+    if(typeof selfPlayer !== 'undefined') {
+        var collisions = [];
+        //check for collisions with each wall
+        wallCollisionBoxes.forEach(wall=> {
+            collisions.push(playerCollisionBox.intersectsBox(wall))
+        })
+        //return true if there was a collision with ANY wall
+        collision = collisions.some(function(e) {
+            return e == true;
+        })
+        return collision
     }
 }
 

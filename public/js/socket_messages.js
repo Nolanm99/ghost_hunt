@@ -30,6 +30,8 @@ socket.on('player movement', (connectionID, Xposition, Yposition)=> {
     player.position.y = Yposition;
     flashlight.position.x = Xposition + Math.cos(player.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
     flashlight.position.y = Yposition + Math.sin(player.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
+    player.__dirtyPosition = true;
+    flashlight.__dirtyPosition = true;
 })
 
 socket.on('player flashlight on', (socketID)=> {
@@ -46,7 +48,6 @@ socket.on('player flashlight on', (socketID)=> {
     }
 });
 socket.on('player flashlight off', (socketID)=> {
-    console.log('received flashlight off status');
     flashlight = playersFlashlights.find(obj=>obj.socketID==socketID);
     if(typeof flashlight !== 'undefined') {
         flashlight.visible = false;
