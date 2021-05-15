@@ -7,7 +7,7 @@ var mouseDown = false;
 var mouseUp = true;
 var selfPlayersCreated = 0;
 var players = [];
-var playerCollisionBoxes = [];
+var playerCollisionSpheres = [];
 var playersFlashlights = [];
 var selfPlayersIndex = -1;
 var gameStarted = 0; //0: pregame, 1: in-game,
@@ -30,77 +30,77 @@ function animate() {
     
     if (selfPlayer && selfPlayer.movementLock == false) {
 
-        selfCollisionBox = playerCollisionBoxes.find(obj=>obj.socketID==socket.id);
-        selfCollisionBox.setFromObject(selfPlayer);
+        selfCollisionSphere = playerCollisionSpheres.find(obj=>obj.socketID==socket.id);
+        selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
 
         if (window.Wpressed) {
-            collisionPreCheck = checkWallIntersection(selfCollisionBox)
+            collisionPreCheck = checkWallIntersection(selfCollisionSphere)
             if(!collisionPreCheck) {
                 selfPlayer.position.y += PLAYER_VELOCITY;
                 selfFlashLight.position.y += PLAYER_VELOCITY;
-                selfCollisionBox.setFromObject(selfPlayer);
+                selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                 socket.emit('player movement', socket.id, 1) //1 = up
 
                 //If hit a wall after this move, move back.
-                collisionPostCheck = checkWallIntersection(selfCollisionBox)
+                collisionPostCheck = checkWallIntersection(selfCollisionSphere)
                 if(collisionPostCheck) {
                     selfPlayer.position.y -= PLAYER_VELOCITY;
                     selfFlashLight.position.y -= PLAYER_VELOCITY;
-                    selfCollisionBox.setFromObject(selfPlayer);
+                    selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                     socket.emit('player movement', socket.id, 3) //3 = down
                 }
             }
         }
         if (window.Apressed) {
-            collisionPreCheck = checkWallIntersection(selfCollisionBox)
+            collisionPreCheck = checkWallIntersection(selfCollisionSphere)
             if(!collisionPreCheck) {
                 selfPlayer.position.x -= PLAYER_VELOCITY;
                 selfFlashLight.position.x -= PLAYER_VELOCITY;
-                selfCollisionBox.setFromObject(selfPlayer);
+                selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                 socket.emit('player movement', socket.id, 2) //2 = left
 
                 //If hit a wall after this move, move back.
-                collisionPostCheck = checkWallIntersection(selfCollisionBox)
+                collisionPostCheck = checkWallIntersection(selfCollisionSphere)
                 if(collisionPostCheck) {
                     selfPlayer.position.x += PLAYER_VELOCITY;
                     selfFlashLight.position.x += PLAYER_VELOCITY;
-                    selfCollisionBox.setFromObject(selfPlayer);
+                    selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                     socket.emit('player movement', socket.id, 4) //4 = right
                 }
             }
         }
         if (window.Spressed) {
-            collisionPreCheck = checkWallIntersection(selfCollisionBox)
+            collisionPreCheck = checkWallIntersection(selfCollisionSphere)
             if(!collisionPreCheck) {
                 selfPlayer.position.y -= PLAYER_VELOCITY;
                 selfFlashLight.position.y -= PLAYER_VELOCITY;
-                selfCollisionBox.setFromObject(selfPlayer);
+                selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                 socket.emit('player movement', socket.id, 3) //3 = down
 
                 //If hit a wall after this move, move back.
-                collisionPostCheck = checkWallIntersection(selfCollisionBox)
+                collisionPostCheck = checkWallIntersection(selfCollisionSphere)
                 if(collisionPostCheck) {
                     selfPlayer.position.y += PLAYER_VELOCITY;
                     selfFlashLight.position.y += PLAYER_VELOCITY;
-                    selfCollisionBox.setFromObject(selfPlayer);
+                    selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                     socket.emit('player movement', socket.id, 1) //1 = up
                 }
             }
         }
         if (window.Dpressed) {
-            collisionPreCheck = checkWallIntersection(selfCollisionBox)
+            collisionPreCheck = checkWallIntersection(selfCollisionSphere)
             if(!collisionPreCheck) {
                 selfPlayer.position.x += PLAYER_VELOCITY;
                 selfFlashLight.position.x += PLAYER_VELOCITY;
-                selfCollisionBox.setFromObject(selfPlayer);
+                selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                 socket.emit('player movement', socket.id, 4) //4 = right
 
                 //If hit a wall after this move, move back.
-                collisionPostCheck = checkWallIntersection(selfCollisionBox)
+                collisionPostCheck = checkWallIntersection(selfCollisionSphere)
                 if(collisionPostCheck) {
                     selfPlayer.position.x -= PLAYER_VELOCITY;
                     selfFlashLight.position.x -= PLAYER_VELOCITY;
-                    selfCollisionBox.setFromObject(selfPlayer);
+                    selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                     socket.emit('player movement', socket.id, 2) //2 = left
                 }
             }

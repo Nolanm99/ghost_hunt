@@ -3,25 +3,24 @@ function selfCreatePlayer() {
         color = '#'.concat(Math.floor(Math.random()*16777215).toString(16)); // create material with random color
         loader.load('/public/assets/box_v1.1_scaling.glb', function (gltf) {
             modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
-            playerMaterial = Physijs.createMaterial(new THREE.MeshLambertMaterial({'color':color}, 20, .9));
             gltf.scene.traverse((o) => {
                 if (o.name == 'Cube') importedCube = o;
                 if (o.name == 'Cone') importedCone = o;
             });
             importedCube.isGhost = false;
             importedCube.movementLock = 0;
-            importedCube.position.z = 20;
+            importedCube.position.z = PLAYER_HEIGHT;
             importedCube.material = modelMaterial;
             importedCube.castShadow = true;
             importedCube.originalColor = importedCube.material.color.getHexString();
             importedCube.socketID = socket.id;
             importedCube.flashlightBattery = 100;
             importedCube.healthLevel = 100;
-            collisionBox = new THREE.Box3().setFromObject(importedCube);
-            collisionBox.socketID = socket.id;
-            playerCollisionBoxes.push(collisionBox);
+            collisionSphere = new THREE.Sphere(importedCube.position, 10);
+            collisionSphere.socketID = socket.id;
+            playerCollisionSpheres.push(collisionSphere);
 
-            importedCone.position.z = 20;
+            importedCone.position.z = PLAYER_HEIGHT;
             importedCone.socketID = socket.id;
             importedCone.visible = false;
 
@@ -49,9 +48,9 @@ function createOtherPlayer(connectionID, color, callback) {
         });
         importedCube.isGhost = false;
         importedCube.movementLock = false;
-        importedCube.position.z = 20;
+        importedCube.position.z = PLAYER_HEIGHT;
         importedCube.material = modelMaterial;
-        importedCone.position.z = 20;
+        importedCone.position.z = PLAYER_HEIGHT;
         importedCube.castShadow = true;
         importedCube.originalColor = importedCube.material.color.getHexString();
         importedCube.socketID = connectionID;

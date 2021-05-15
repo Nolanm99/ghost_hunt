@@ -121,8 +121,8 @@ io.on('connection', socket => {
                     var playerCounter = 0;
                     room.playerList.forEach(player => {
 
-                        player.Xposition = Math.round(Math.cos(playerCounter) * 150);
-                        player.Yposition = Math.round(Math.sin(playerCounter) * 150);  
+                        player.Xposition = Math.round(Math.cos(playerCounter) * 200);
+                        player.Yposition = Math.round(Math.sin(playerCounter) * 200);  
                         playerCounter += Math.PI/(room.MAX_PLAYERS-1);
                     })
 

@@ -61,13 +61,13 @@ function onMouseMove(event) {
     }
 }
 
-function checkWallIntersection(playerCollisionBox) {
+function checkWallIntersection(playerCollisionSphere) {
     selfPlayer = players.find(obj=>obj.socketID==socket.id);
     if(typeof selfPlayer !== 'undefined') {
         var collisions = [];
         //check for collisions with each wall
         wallCollisionBoxes.forEach(wall=> {
-            collisions.push(playerCollisionBox.intersectsBox(wall))
+            collisions.push(playerCollisionSphere.intersectsBox(wall))
         })
         //return true if there was a collision with ANY wall
         collision = collisions.some(function(e) {
