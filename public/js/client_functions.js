@@ -59,9 +59,6 @@ function createOtherPlayer(connectionID, color, callback) {
         importedCone.socketID = connectionID;
         importedCone.visible = false;
         players.push(importedCube);
-        newCollisionBox = new THREE.Box3().setFromObject(importedCube);
-        newCollisionBox.socketID = connectionID;
-        playerCollisionBoxes.push(newCollisionBox);
         playersFlashlights.push(importedCone);
         scene.add(importedCube);
         scene.add(importedCone);

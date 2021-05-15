@@ -29,7 +29,7 @@ function animate() {
     selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
     
     if (selfPlayer && selfPlayer.movementLock == false) {
-
+        if(gameStarted && selfPlayer.isGhost) {messageOverlay.innerText = "You are the ghost!";}
         selfCollisionSphere = playerCollisionSpheres.find(obj=>obj.socketID==socket.id);
         selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
 
@@ -107,24 +107,27 @@ function animate() {
         }
 
         if (mouseDown) {
-            //send request to turn flashlight on
-            socket.emit('player flashlight on', socket.id);
-            
-            //check for collisions
-            if(selfFlashLight.visible) {
-                playerDirection.set(Math.cos(selfPlayer.rotation.z), Math.sin(selfPlayer.rotation.z), 0);
-                playerLightRayCaster.set(selfPlayer.position, playerDirection);
-                intersects = playerLightRayCaster.intersectObjects(players);
-                intersects = intersects.filter(function (obj) {
-                    return obj.distance <= FLASHLIGHT_LENGTH;
-                })
-                if (intersects.length) {
-                    intersects.forEach((cube)=> {
-                        cube.object.material.color.set('#fcba03')
-                        cube.object.illuminatedStartTime = date.getTime();
-                        cube.object.illuminated = true;
-                        socket.emit('player illuminated', cube.object.socketID, true);
+            //Ghosts don't have flashlights!
+            if(!selfPlayer.isGhost) {
+                //send request to turn flashlight on
+                socket.emit('player flashlight on', socket.id);
+                
+                //check for collisions
+                if(selfFlashLight.visible) {
+                    playerDirection.set(Math.cos(selfPlayer.rotation.z), Math.sin(selfPlayer.rotation.z), 0);
+                    playerLightRayCaster.set(selfPlayer.position, playerDirection);
+                    intersects = playerLightRayCaster.intersectObjects(players);
+                    intersects = intersects.filter(function (obj) {
+                        return obj.distance <= FLASHLIGHT_LENGTH;
                     })
+                    if (intersects.length) {
+                        intersects.forEach((cube)=> {
+                            cube.object.material.color.set('#fcba03')
+                            cube.object.illuminatedStartTime = date.getTime();
+                            cube.object.illuminated = true;
+                            socket.emit('player illuminated', cube.object.socketID, true);
+                        })
+                    }
                 }
             }
         }
