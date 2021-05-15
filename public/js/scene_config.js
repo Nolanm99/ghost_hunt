@@ -33,8 +33,6 @@ plane.receiveShadow = true;
 function loadMap(callback) {
     loader.load('/public/assets/maps/map_v0.3_wall_test.glb', function (gltf) {
         modelMaterial = new THREE.MeshStandardMaterial( {'color': 'red'} );
-        groundMaterial = Physijs.createMaterial(new THREE.MeshLambertMaterial({'color':'gray'}, 20, .4));
-        wallMaterial = Physijs.createMaterial(new THREE.MeshLambertMaterial({'color':'red'}, 1, .1));
         var mapFloor;
         var mapWalls = [];
         gltf.scene.traverse((o) => {
@@ -49,7 +47,6 @@ function loadMap(callback) {
         mapFloor.rotation.x = Math.PI/2;
         mapFloor.receiveShadow = true;
         mapFloor.castShadow = true;
-        mapFloor.material = groundMaterial;
 
         mapWalls.forEach(mapWall=> {
             mapWall.rotation.x = Math.PI/2;
