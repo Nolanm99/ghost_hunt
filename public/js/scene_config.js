@@ -31,9 +31,15 @@ plane.receiveShadow = true;
 //MAP LOADING
 
 function loadMap(callback) {
-    loader.load('/public/assets/maps/map_v0.3_wall_test.glb', function (gltf) {
-        modelMaterial = new THREE.MeshStandardMaterial( {'color': 'red'} );
-        floorMaterial = new THREE.MeshStandardMaterial( {'color': 'gray'} );
+
+    woodTexture = new THREE.TextureLoader().load('/public/assets/textures/dark-wood-texture.jpg');
+    wallMaterial = new THREE.MeshPhongMaterial( {map: woodTexture} );
+    floorTexture = new THREE.TextureLoader().load('/public/assets/textures/wood_floor.jpg');
+    floorMaterial = new THREE.MeshStandardMaterial( {map: floorTexture} );
+
+    loader.load(MAP_MODEL_FILE, function (gltf) {
+        modelMaterial = new THREE.MeshStandardMaterial( {'color': 'gray'} );
+        
         var mapFloor;
         var mapWalls = [];
         gltf.scene.traverse((o) => {
@@ -61,7 +67,7 @@ function loadMap(callback) {
             mapWall.position.z = tempY;
             mapWall.receiveShadow = true;
             mapWall.castShadow = true;
-            mapWall.material = modelMaterial;
+            mapWall.material = wallMaterial;
             mapWall.mapAssetType = "wall";
             collisionBox = new THREE.Box3().setFromObject(mapWall);
             wallCollisionBoxes.push(collisionBox);
@@ -84,12 +90,14 @@ function loadMap(callback) {
 //LIGHTING
 const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.3);
 const directionalLight = new THREE.SpotLight(0xFFFFFF,0.7, 5000);
-directionalLight.position.set(300,0,600);
+directionalLight.position.set(100,0,150);
 directionalLight.castShadow = true;
+directionalLight.shadow.mapSize.width = 512;
+directionalLight.shadow.mapSize.height = 512;
 
 //CAMERA
 var raycaster = new THREE.Raycaster();  
-camera.position.z = 300;
-camera.position.y = -200;
+camera.position.z = 100;
+camera.position.y = -20;
 camera.position.x = 0;
 camera.lookAt(0,0,0);

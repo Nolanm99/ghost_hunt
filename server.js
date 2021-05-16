@@ -45,58 +45,27 @@ app.get('/', (req,res) => {
 })
 
 
+//Import classes
+var serverClasses = require('./serverJS/classes.js');
 
 
 
-//Construct Classes
-class Connection {
-    constructor(id) {
-        this.socketID = id;
-        this.madePlayer = false;
-    }
-}
-class Player {
-    constructor(id, color) {
-        this.socketID = id;
-        this.roomID = 0;
-        this.color = color;
-        this.Xposition = 0;
-        this.Yposition = 0;
-        this.flashLightStatus = false;
-        this.rotationAngle = 0;
-        this.illuminated = false;
-        this.flashlightBatteryLevel = 100;
-        this.healthLevel = 100;
-        this.flashlightLockoutTimer = false;
-        this.isGhost = false;
-    }
-}
 
-class Room {
-    constructor(id) {
-        this.MAX_PLAYERS = 2;
-        this.playerList = [];
-        this.roomID = id;
-        this.roomStatus = 0; //0:PREGAME LOBBY, 1:IN GAME
-    }
-}
-
-roomList.push(new Room(1));
+roomList.push(new serverClasses.Room(1));
 
 //On client connection
 io.on('connection', socket => {
     console.log('New Connection: ', socket.id);
-    connectionList.push(new Connection(socket.id));
+    connectionList.push(new serverClasses.Connection(socket.id));
     console.log('Current Connections: ', connectionList);
+
+    //Send the game settings to the client.
+    io.to(socket.id).emit('game settings', server_constants.game_settings);
 
     //When someone hits the new player button
     socket.on('new player', (connectionID, color)=> {
-        newPlayer = new Player(connectionID, color)
+        newPlayer = new serverClasses.Player(connectionID, color)
         playerList.push(newPlayer);
-
-        if(server_constants.server_settings.DEBUG_MODE) {
-            io.to(connectionID).emit('debug mode');
-        }
 
         //Find a room to put the player in
         roomList.forEach(room => {
@@ -121,8 +90,8 @@ io.on('connection', socket => {
                     var playerCounter = 0;
                     room.playerList.forEach(player => {
 
-                        player.Xposition = Math.round(Math.cos(playerCounter) * 300);
-                        player.Yposition = Math.round(Math.sin(playerCounter) * 300);  
+                        player.Xposition = Math.round(Math.cos(playerCounter) * server_constants.game_settings.MAP_X_EXTENTS / 6);
+                        player.Yposition = Math.round(Math.sin(playerCounter) * server_constants.game_settings.MAP_Y_EXTENTS / 6);  
                         playerCounter += Math.PI/(room.MAX_PLAYERS-1);
                     })
 
@@ -148,7 +117,7 @@ io.on('connection', socket => {
         if(newPlayer.roomID == 0) {
             //Send the room's player list for synchronization
             newRoomID = roomList.length + 1;
-            newRoom = new Room(newRoomID);
+            newRoom = new serverClasses.Room(newRoomID);
             socket.emit('player sync', newRoom.playerList);   
             
             roomList.push(newRoom);
@@ -235,6 +204,7 @@ io.on('connection', socket => {
 
     socket.on('player illuminated', (socketID, illuminatedStatus)=> {
         illuminatedPlayer = playerList.find(obj=>obj.socketID==socketID);
+        selectedRoom = roomList.find(room => room.roomID == illuminatedPlayer.roomID);
 
         if(illuminatedPlayer.illuminated == false) {
             illuminatedPlayer.illuminated = illuminatedStatus;
@@ -244,11 +214,18 @@ io.on('connection', socket => {
             console.log(`sending new health level to ${illuminatedPlayer.socketID}, ${illuminatedPlayer.healthLevel}`)
             io.to(illuminatedPlayer.socketID).emit('health status', illuminatedPlayer.healthLevel);
 
+            //GAME OVER IF GHOST DIES
+            if(illuminatedPlayer.healthLevel <= 0) {
+                selectedRoom.roomStatus = 2; //GAME OVER
+                io.to(illuminatedPlayer.roomID).emit('game over');
+            }
+
+
             io.emit('player illuminated', socketID, illuminatedStatus);
             setTimeout(function() {
                 illuminatedPlayer.illuminated = false;
                 io.emit('player illuminated', socketID, false);
-            }, 1000); //flip back color after 1 seconds
+            }, 2000); //flip back color after 1 seconds
         }
     });
 

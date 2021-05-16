@@ -10,7 +10,7 @@ var players = [];
 var playerCollisionSpheres = [];
 var playersFlashlights = [];
 var selfPlayersIndex = -1;
-var gameStarted = 0; //0: pregame, 1: in-game,
+var gameStarted = false; 
 var gameOver = false; 
 var debugMode = false;
 var checkWall = false;
@@ -19,7 +19,7 @@ var checkWall = false;
 //ANIMATION LOOP
 function animate() {
     if(debugMode) {roomInfo.innerText = `Socket: ${socket.id}, Room: `;}
-    if(gameStarted == 0) {messageOverlay.innerText = "Waiting for Players...";}
+    if(gameStarted == false) {messageOverlay.innerText = "Waiting for Players...";}
     if(gameOver == true) {
         messageOverlay.innerText = "Game Over!";
         leaveGameBtn.style.display = "block";
@@ -29,6 +29,10 @@ function animate() {
     selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
     
     if (selfPlayer && selfPlayer.movementLock == false) {
+        //camera.lookAt(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z);
+        //camera.position.x = selfPlayer.position.x;
+        //camera.position.y = selfPlayer.position.y;
+
         if(gameStarted && selfPlayer.isGhost) {messageOverlay.innerText = "You are the ghost!";}
         selfCollisionSphere = playerCollisionSpheres.find(obj=>obj.socketID==socket.id);
         selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
@@ -41,6 +45,9 @@ function animate() {
                 selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                 socket.emit('player movement', socket.id, 1) //1 = up
 
+                //camera.lookAt(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z);
+                camera.position.y += PLAYER_VELOCITY/2;
+
                 //If hit a wall after this move, move back.
                 collisionPostCheck = checkWallIntersection(selfCollisionSphere)
                 if(collisionPostCheck) {
@@ -48,8 +55,11 @@ function animate() {
                     selfFlashLight.position.y -= PLAYER_VELOCITY;
                     selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                     socket.emit('player movement', socket.id, 3) //3 = down
+
+                    camera.position.y -= PLAYER_VELOCITY/2;
                 }
             }
+            
         }
         if (window.Apressed) {
             collisionPreCheck = checkWallIntersection(selfCollisionSphere)
@@ -59,6 +69,8 @@ function animate() {
                 selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                 socket.emit('player movement', socket.id, 2) //2 = left
 
+                camera.position.x -= PLAYER_VELOCITY/2;
+
                 //If hit a wall after this move, move back.
                 collisionPostCheck = checkWallIntersection(selfCollisionSphere)
                 if(collisionPostCheck) {
@@ -66,6 +78,8 @@ function animate() {
                     selfFlashLight.position.x += PLAYER_VELOCITY;
                     selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                     socket.emit('player movement', socket.id, 4) //4 = right
+
+                    camera.position.x += PLAYER_VELOCITY/2;
                 }
             }
         }
@@ -77,6 +91,8 @@ function animate() {
                 selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                 socket.emit('player movement', socket.id, 3) //3 = down
 
+                camera.position.y -= PLAYER_VELOCITY/2;
+
                 //If hit a wall after this move, move back.
                 collisionPostCheck = checkWallIntersection(selfCollisionSphere)
                 if(collisionPostCheck) {
@@ -84,6 +100,8 @@ function animate() {
                     selfFlashLight.position.y += PLAYER_VELOCITY;
                     selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                     socket.emit('player movement', socket.id, 1) //1 = up
+
+                    camera.position.y += PLAYER_VELOCITY/2;
                 }
             }
         }
@@ -95,6 +113,8 @@ function animate() {
                 selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                 socket.emit('player movement', socket.id, 4) //4 = right
 
+                camera.position.x += PLAYER_VELOCITY/2;
+
                 //If hit a wall after this move, move back.
                 collisionPostCheck = checkWallIntersection(selfCollisionSphere)
                 if(collisionPostCheck) {
@@ -102,6 +122,8 @@ function animate() {
                     selfFlashLight.position.x -= PLAYER_VELOCITY;
                     selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                     socket.emit('player movement', socket.id, 2) //2 = left
+
+                    camera.position.x -= PLAYER_VELOCITY/2;
                 }
             }
         }

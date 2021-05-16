@@ -2,8 +2,10 @@ socket.on('message', (message) => {
     console.log(message);
 })
 
-socket.on('debug mode', () => {
-    debugMode = true;
+socket.on('game settings', (game_settings) => {
+    console.log(`Received game settings from server.`);
+    PLAYER_VELOCITY = game_settings.PLAYER_VELOCITY;
+    debugMode = game_settings.DEBUG_MODE;
 })
 
 socket.on('new player', (connectionID, color) => {
@@ -62,11 +64,12 @@ socket.on('health status', (healthLevel)=> {
     selfPlayer = players.find(obj=>obj.socketID==socket.id);
     selfPlayer.healthLevel = healthLevel
     healthProgressBarElement.style.width = String(healthLevel).concat("%");
-
+    /*
     if(selfPlayer.healthLevel <= 0) {
         removePlayerFromGame(socket.id)
         gameOver = true;
     }
+    */
 });
 
 socket.on('player rotation', (socketID, newAngle)=> {   
@@ -87,7 +90,7 @@ socket.on('player illuminated', (socketID, illuminatedStatus)=> {
     if(illuminatedPlayer.illuminated) {
         if(illuminatedPlayer.isGhost && socket.id !== illuminatedPlayer.socketID) {
             illuminatedPlayer.visible = true;
-            setTimeout(function() {illuminatedPlayer.visible = false},1000);
+            setTimeout(function() {illuminatedPlayer.visible = false},2000);
         }
         illuminatedPlayer.material.color.set('#fcba03');
     }
@@ -130,6 +133,11 @@ socket.on('selected ghost', socketID => {
         }, 5000)
     }
 })
+
+socket.on('game over', () => {
+    gameOver = true;
+    gameStarted = false;
+}) 
 
 socket.on('player disconnect', connectionID => {
     removePlayerFromGame(connectionID);
