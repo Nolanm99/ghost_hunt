@@ -11,8 +11,9 @@ const passportSetup = require('./config/passport-setup');
 const mongoose = require('mongoose');
 const cookieSession = require('cookie-session');
 const passport = require('passport');
-const keys = require('./config/keys')
-const server_constants = require('./serverJS/server_constants.js')
+const keys = require('./config/keys');
+const server_constants = require('./serverJS/server_constants.js');
+
 
 //Load dependencies
 var serverIntermittentFunctions = require('./serverJS/serverIntermittentFunctions.js');
@@ -59,30 +60,33 @@ io.on('connection', socket => {
     connectionList.push(new serverClasses.Connection(socket.id));
     console.log('Current Connections: ', connectionList);
 
-    //Send the game settings to the client.
-    io.to(socket.id).emit('game settings', server_constants.game_settings);
-
     //When someone hits the new player button
     socket.on('new player', (connectionID, color)=> {
         newPlayer = new serverClasses.Player(connectionID, color)
         playerList.push(newPlayer);
 
+        
+
         //Find a room to put the player in
         roomList.forEach(room => {
             if(room.playerList.length < room.MAX_PLAYERS && newPlayer.roomID == 0 && room.roomStatus ==0) {
                 //Send the room's player list for synchronization
-                socket.emit('player sync', room.playerList);   
-                
+                socket.emit('player sync', room.playerList);
+
                 room.playerList.push(newPlayer);
                 newPlayer.roomID = room.roomID;
                 socket.join(room.roomID)
 
+                //Send the game settings to the client.
+                io.to(socket.id).emit('game settings', server_constants.game_settings, room.roomID);
+
                 console.log('New Player Created: ', connectionID, color)
                 socket.to(newPlayer.roomID).emit('new player', connectionID, color);
 
+                /*
                 //If room has reached max players, start the game
                 //START GAME///
-                if(room.playerList.length == room.MAX_PLAYERS && room.roomStatus == 0) {
+                if(room.playerList.length >= room.MAX_PLAYERS && room.roomStatus == 0) {
                     console.log('STARTING GAME FOR ROOM ', room.roomID);
                     io.to(room.roomID).emit('game started', roomList);
 
@@ -103,13 +107,14 @@ io.on('connection', socket => {
                     }, 200);
 
                     //Select a ghost character
-                    playerIdx = Math.round(Math.random() * (room.MAX_PLAYERS - 1));
+                    humanPlayerList = room.playerList.filter(obj=> {return obj.socketID.search("ai_") == -1;})
+                    playerIdx = Math.round(Math.random() * (humanPlayerList.length - 1));
                     console.log(`player index ${playerIdx}`);
-                    room.playerList[playerIdx].isGhost = true;
-                    setTimeout(function() {io.to(room.roomID).emit('selected ghost', room.playerList[playerIdx].socketID)}, 200);
+                    humanPlayerList[playerIdx].isGhost = true;
+                    setTimeout(function() {io.to(room.roomID).emit('selected ghost', humanPlayerList[playerIdx].socketID)}, 200);
                     
                     room.roomStatus = 1;
-                }
+                }*/
             }
         })
 
@@ -118,7 +123,10 @@ io.on('connection', socket => {
             //Send the room's player list for synchronization
             newRoomID = roomList.length + 1;
             newRoom = new serverClasses.Room(newRoomID);
-            socket.emit('player sync', newRoom.playerList);   
+            socket.emit('player sync', newRoom.playerList);
+
+            //Send the game settings to the client.
+            io.to(socket.id).emit('game settings', server_constants.game_settings,newRoomID);
             
             roomList.push(newRoom);
             newRoom.playerList.push(newPlayer);
@@ -203,6 +211,7 @@ io.on('connection', socket => {
     });
 
     socket.on('player illuminated', (socketID, illuminatedStatus)=> {
+        console.log(`socket: ${socketID}`)
         illuminatedPlayer = playerList.find(obj=>obj.socketID==socketID);
         selectedRoom = roomList.find(room => room.roomID == illuminatedPlayer.roomID);
 
@@ -264,6 +273,8 @@ io.on('connection', socket => {
 
 setInterval(serverIntermittentFunctions.printRoomsStatus, 2000, roomList);
 setInterval(serverIntermittentFunctions.sendRoomStatus, 2000, roomList, io);
+setInterval(serverIntermittentFunctions.addAiAgentIfNeeded, 500, roomList, playerList, io);
+setInterval(serverIntermittentFunctions.startGameIfNeeded, 500, roomList, io);
 
 server.listen(server_constants.server_settings.PORT, "0.0.0.0", ()=> {
     console.log(`Server running on port ${server_constants.server_settings.PORT}`);

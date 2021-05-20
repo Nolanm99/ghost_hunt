@@ -7,6 +7,7 @@ var mouseDown = false;
 var mouseUp = true;
 var selfPlayersCreated = 0;
 var players = [];
+var aiPlayers = [];
 var playerCollisionSpheres = [];
 var playersFlashlights = [];
 var selfPlayersIndex = -1;
@@ -18,7 +19,7 @@ var checkWall = false;
 
 //ANIMATION LOOP
 function animate() {
-    if(debugMode) {roomInfo.innerText = `Socket: ${socket.id}, Room: `;}
+    if(debugMode) {roomInfo.innerText = `Socket: ${socket.id}, Room: ${roomID}`;}
     if(gameStarted == false) {messageOverlay.innerText = "Waiting for Players...";}
     if(gameOver == true) {
         messageOverlay.innerText = "Game Over!";
@@ -29,9 +30,6 @@ function animate() {
     selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
     
     if (selfPlayer && selfPlayer.movementLock == false) {
-        //camera.lookAt(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z);
-        //camera.position.x = selfPlayer.position.x;
-        //camera.position.y = selfPlayer.position.y;
 
         if(gameStarted && selfPlayer.isGhost) {messageOverlay.innerText = "You are the ghost!";}
         selfCollisionSphere = playerCollisionSpheres.find(obj=>obj.socketID==socket.id);
@@ -45,7 +43,6 @@ function animate() {
                 selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
                 socket.emit('player movement', socket.id, 1) //1 = up
 
-                //camera.lookAt(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z);
                 camera.position.y += PLAYER_VELOCITY/2;
 
                 //If hit a wall after this move, move back.
@@ -144,10 +141,13 @@ function animate() {
                     })
                     if (intersects.length) {
                         intersects.forEach((cube)=> {
-                            cube.object.material.color.set('#fcba03')
-                            cube.object.illuminatedStartTime = date.getTime();
-                            cube.object.illuminated = true;
-                            socket.emit('player illuminated', cube.object.socketID, true);
+                            if(cube.object.socketID.isGhost) {
+                                //send illuminate message only if the player is a ghost
+                                socket.emit('player illuminated', cube.object.socketID, true);
+                                cube.object.material.color.set('#fcba03')
+                                cube.object.illuminatedStartTime = date.getTime();
+                                cube.object.illuminated = true;
+                            }
                         })
                     }
                 }

@@ -2,16 +2,21 @@ socket.on('message', (message) => {
     console.log(message);
 })
 
-socket.on('game settings', (game_settings) => {
+socket.on('game settings', (game_settings, serverRoomID) => {
     console.log(`Received game settings from server.`);
     PLAYER_VELOCITY = game_settings.PLAYER_VELOCITY;
     debugMode = game_settings.DEBUG_MODE;
+    roomID = serverRoomID;
 })
 
 socket.on('new player', (connectionID, color) => {
     createOtherPlayer(connectionID, color, ()=> {
     });
 });
+
+socket.on('new ai player', (connectionID) => {
+    createAIPlayer(connectionID, () => {});
+})
 
 socket.on('player sync', (serverPlayerList)=> {
     serverPlayerList.forEach( (player)=> { //for every current connection that started the game

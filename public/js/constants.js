@@ -23,6 +23,8 @@ const PLAYER_HEIGHT = 10;
 const FLASHLIGHT_DIST_FROM_PLAYER = 7;
 const FLASHLIGHT_LENGTH = 16;
 
+var roomID = 0;
+
 const playerLightRayCaster = new THREE.Raycaster();
 
 const loader = new THREE.GLTFLoader();
