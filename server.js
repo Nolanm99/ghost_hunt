@@ -82,39 +82,6 @@ io.on('connection', socket => {
 
                 console.log('New Player Created: ', connectionID, color)
                 socket.to(newPlayer.roomID).emit('new player', connectionID, color);
-
-                /*
-                //If room has reached max players, start the game
-                //START GAME///
-                if(room.playerList.length >= room.MAX_PLAYERS && room.roomStatus == 0) {
-                    console.log('STARTING GAME FOR ROOM ', room.roomID);
-                    io.to(room.roomID).emit('game started', roomList);
-
-                    //Reset player positions
-                    var playerCounter = 0;
-                    room.playerList.forEach(player => {
-
-                        player.Xposition = Math.round(Math.cos(playerCounter) * server_constants.game_settings.MAP_X_EXTENTS / 6);
-                        player.Yposition = Math.round(Math.sin(playerCounter) * server_constants.game_settings.MAP_Y_EXTENTS / 6);  
-                        playerCounter += Math.PI/(room.MAX_PLAYERS-1);
-                    })
-
-                    //Send the new positions 0.2 seconds later
-                    setTimeout(function() {
-                        room.playerList.forEach(player => {
-                            io.to(room.roomID).emit('player movement', player.socketID, player.Xposition, player.Yposition);
-                        })
-                    }, 200);
-
-                    //Select a ghost character
-                    humanPlayerList = room.playerList.filter(obj=> {return obj.socketID.search("ai_") == -1;})
-                    playerIdx = Math.round(Math.random() * (humanPlayerList.length - 1));
-                    console.log(`player index ${playerIdx}`);
-                    humanPlayerList[playerIdx].isGhost = true;
-                    setTimeout(function() {io.to(room.roomID).emit('selected ghost', humanPlayerList[playerIdx].socketID)}, 200);
-                    
-                    room.roomStatus = 1;
-                }*/
             }
         })
 

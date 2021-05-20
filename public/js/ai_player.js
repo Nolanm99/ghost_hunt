@@ -1,17 +1,3 @@
-function AiAgentAction(aiAgentID) {
-    //This function is called on every ai agent in each room, for each frame. 
-    
-    //select the ai agent
-    selectedAiAgent = aiPlayers.find(obj=>obj.socketID == aiAgentID);
-
-    // randomly move around
-
-    // randomly put flashlight on for certain periods of time
-
-
-    return
-}
-
 function createAIPlayer(newAIPlayerID,callback) {
     color = '#'.concat(Math.floor(Math.random()*16777215).toString(16));
     loader.load(PLAYER_MODEL_FILE, function (gltf) {
