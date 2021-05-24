@@ -24,7 +24,7 @@ class Player {
 
 class Room {
     constructor(id) {
-        this.MAX_PLAYERS = 2;
+        this.MAX_PLAYERS = 3;
         this.playerList = [];
         this.roomID = id;
         this.roomStatus = 0; //0:PREGAME LOBBY, 1:IN GAME, 2: GAME OVER
@@ -32,4 +32,14 @@ class Room {
     }
 }
 
-module.exports = {Connection,Player,Room};
+class AiState {
+    constructor(id,roomID) {
+        this.socketID = id;
+        this.roomID = roomID;
+        this.xMovement = 0;
+        this.yMovement = 0;
+        this.rotationAngle = 0;
+    }
+}
+
+module.exports = {Connection,Player,Room,AiState};

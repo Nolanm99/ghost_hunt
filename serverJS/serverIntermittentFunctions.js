@@ -37,14 +37,35 @@ module.exports = {
             //io.to(room.roomID).emit('room status', room);
         })
     },
-    aiAgentActions: function(playerList) {
+    calculateAiStates: function(playerList, io, aiStateList) {
         //filter playerlist to only AI agents
-        aiPlayerList = playerList.filter(obj=> {
-            return obj.socketID.search("ai_") != -1;
-        })
-        console.log(aiPlayerList);
+        if(playerList.length > 0) {
+            
+            aiPlayerList = playerList.filter(obj=> {return obj.socketID.search("ai_") != -1;})
+            //
+            aiPlayerList.forEach(aiPlayer => {
+                //find the state for this player
+                selectedAiState = aiStateList.find(obj=>obj.socketID == aiPlayer.socketID);
+                //console.log(`found ai state ${selectedAiState}`)
+                if(selectedAiState) {
+                    //if ghost, do this
+                    if(aiPlayer.isGhost) {
+
+                    }
+
+
+                    //otherwise, do this
+                    else {
+                        //CHANGE AI STATE (NEW SOCKET MESSAGES FOR AI STATES)
+                        selectedAiState.xMovement = 1;
+                        io.to(aiPlayer.roomID).emit('new ai state', aiPlayer.socketID, selectedAiState);
+                    }
+                }
+                
+            })
+        }
     },
-    addAiAgentIfNeeded: function(roomList, playerList, io) {
+    addAiAgentIfNeeded: function(roomList, playerList, io, aiStateList) {
         roomList.forEach(room => {
             //for each room, if the game has not started in 10 seconds, add AI players to fill the room
             timeDelta = (Date.now() - room.timeCreated) / 1000;
@@ -58,7 +79,9 @@ module.exports = {
                     console.log(`ADDING AI PLAYER`)
                     newAIPlayerID = "ai_" + crypto.randomBytes(20).toString('hex');
                     newAIPlayer = new serverClasses.Player(newAIPlayerID, 'rand_color');
-                    newAIPlayer.roomID = room.roomID
+                    newAIPlayer.roomID = room.roomID;
+                    newAIState = new serverClasses.AiState(newAIPlayerID, room.roomID);
+                    aiStateList.push(newAIState); 
                     playerList.push(newAIPlayer);
                     room.playerList.push(newAIPlayer);
                     io.to(room.roomID).emit('new ai player', newAIPlayerID);

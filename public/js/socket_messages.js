@@ -14,10 +14,6 @@ socket.on('new player', (connectionID, color) => {
     });
 });
 
-socket.on('new ai player', (connectionID) => {
-    createAIPlayer(connectionID, () => {});
-})
-
 socket.on('player sync', (serverPlayerList)=> {
     serverPlayerList.forEach( (player)=> { //for every current connection that started the game
         createOtherPlayer(player.socketID, player.color, (importedCube, importedCone)=> {

@@ -17,6 +17,9 @@ function createAIPlayer(newAIPlayerID,callback) {
         importedCube.flashlightBattery = 100;
         importedCube.healthLevel = 100;
 
+        importedCube.xMovment = false;
+        importedCube.yMovment = false;
+
         importedCone.position.z = PLAYER_HEIGHT;
         importedCone.socketID = newAIPlayerID;
         importedCone.visible = false;

@@ -19,6 +19,7 @@ const server_constants = require('./serverJS/server_constants.js');
 var serverIntermittentFunctions = require('./serverJS/serverIntermittentFunctions.js');
 var connectionList = [];
 var playerList = [];
+var aiStateList = [];
 var roomList = [];
 
 app.set('view engine', 'ejs')
@@ -239,9 +240,9 @@ io.on('connection', socket => {
 });
 
 setInterval(serverIntermittentFunctions.printRoomsStatus, 2000, roomList);
-setInterval(serverIntermittentFunctions.sendRoomStatus, 2000, roomList, io);
-setInterval(serverIntermittentFunctions.addAiAgentIfNeeded, 500, roomList, playerList, io);
+setInterval(serverIntermittentFunctions.addAiAgentIfNeeded, 500, roomList, playerList, io, aiStateList);
 setInterval(serverIntermittentFunctions.startGameIfNeeded, 500, roomList, io);
+setInterval(serverIntermittentFunctions.calculateAiStates, 100, playerList, io, aiStateList);
 
 server.listen(server_constants.server_settings.PORT, "0.0.0.0", ()=> {
     console.log(`Server running on port ${server_constants.server_settings.PORT}`);

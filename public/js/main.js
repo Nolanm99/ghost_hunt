@@ -35,6 +35,15 @@ function animate() {
         selfCollisionSphere = playerCollisionSpheres.find(obj=>obj.socketID==socket.id);
         selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
 
+        //Update the ai agents according to their states
+        aiPlayers = players.filter(obj=> {return obj.socketID.search("ai_") != -1;});
+        if(aiPlayers.length > 0) {
+            aiPlayers.forEach(aiPlayer => {
+                aiPlayer.position.x += aiPlayer.xMovement*PLAYER_VELOCITY;
+                aiPlayer.position.y += aiPlayer.yMovement*PLAYER_VELOCITY;
+            })
+        }
+
         if (window.Wpressed) {
             collisionPreCheck = checkWallIntersection(selfCollisionSphere)
             if(!collisionPreCheck) {
@@ -160,7 +169,7 @@ function animate() {
             }
         }
     }
-    //scene.simulate()
+
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 }
