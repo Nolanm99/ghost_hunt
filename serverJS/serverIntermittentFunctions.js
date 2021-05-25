@@ -32,11 +32,6 @@ module.exports = {
             room.playerList.forEach(player=>{console.log(player.socketID)})
         });
     },
-    sendRoomStatus: function(roomList, io) {
-        roomList.forEach(room => {
-            //io.to(room.roomID).emit('room status', room);
-        })
-    },
     calculateAiStates: function(playerList, io, aiStateList) {
         //filter playerlist to only AI agents
         if(playerList.length > 0) {
@@ -46,7 +41,6 @@ module.exports = {
             aiPlayerList.forEach(aiPlayer => {
                 //find the state for this player
                 selectedAiState = aiStateList.find(obj=>obj.socketID == aiPlayer.socketID);
-                //console.log(`found ai state ${selectedAiState}`)
                 if(selectedAiState) {
                     //if ghost, do this
                     if(aiPlayer.isGhost) {
@@ -57,11 +51,10 @@ module.exports = {
                     //otherwise, do this
                     else {
                         //CHANGE AI STATE (NEW SOCKET MESSAGES FOR AI STATES)
-                        selectedAiState.xMovement = 1;
+                        //selectedAiState.xMovement = 1;
                         io.to(aiPlayer.roomID).emit('new ai state', aiPlayer.socketID, selectedAiState);
                     }
-                }
-                
+                }    
             })
         }
     },
@@ -112,12 +105,23 @@ module.exports = {
     
                 //Select a ghost character (human players only)
                 humanPlayerList = room.playerList.filter(obj=> {return obj.socketID.search("ai_") == -1;})
-                playerIdx = Math.round(Math.random() * (humanPlayerList.length - 1));
-                console.log(`player index ${playerIdx}`);
-                humanPlayerList[playerIdx].isGhost = true;
-                setTimeout(function() {io.to(room.roomID).emit('selected ghost', humanPlayerList[playerIdx].socketID)}, 200);
+                playerIdx = Math.round(Math.random() * (room.playerList.length - 1));
+                room.playerList[playerIdx].isGhost = true;
+                setTimeout(function() {io.to(room.roomID).emit('selected ghost', room.playerList[playerIdx].socketID)}, 200);
                 
                 room.roomStatus = 1;
+            }
+        })
+    },
+    endGameIfNeeded: function(roomList, io) {
+        roomList.forEach(room=> {
+            humansInRoom = room.playerList.filter(obj=> {return obj.socketID.search("ai_") == -1;});
+            aiPlayersInRoom = room.playerList.filter(obj=> {return obj.socketID.search("ai_") !== -1;});
+            if(aiPlayersInRoom.length > 0 && humansInRoom.length == 0) {
+                console.log(`Removing room: ${room.roomID}`);
+                roomList = roomList.filter(obj => {
+                    return obj.roomID != room.roomID;
+                });
             }
         })
     } 

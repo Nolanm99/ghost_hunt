@@ -26,9 +26,9 @@ socket.on('player sync', (serverPlayerList)=> {
 })
 
 socket.on('player movement', (connectionID, Xposition, Yposition)=> {
+    //console.log('received player movement',Xposition, Yposition)
     player = players.find(obj=>obj.socketID==connectionID);
     flashlight = playersFlashlights.find(obj=>obj.socketID==connectionID);
-
     player.position.x = Xposition;
     player.position.y = Yposition;
     flashlight.position.x = Xposition + Math.cos(player.rotation.z) * FLASHLIGHT_DIST_FROM_PLAYER;
@@ -65,12 +65,6 @@ socket.on('health status', (healthLevel)=> {
     selfPlayer = players.find(obj=>obj.socketID==socket.id);
     selfPlayer.healthLevel = healthLevel
     healthProgressBarElement.style.width = String(healthLevel).concat("%");
-    /*
-    if(selfPlayer.healthLevel <= 0) {
-        removePlayerFromGame(socket.id)
-        gameOver = true;
-    }
-    */
 });
 
 socket.on('player rotation', (socketID, newAngle)=> {   
@@ -86,12 +80,13 @@ socket.on('player rotation', (socketID, newAngle)=> {
 });
 
 socket.on('player illuminated', (socketID, illuminatedStatus)=> {
+    console.log(`received player illuminated`)
     illuminatedPlayer = players.find(obj=>obj.socketID==socketID);
     illuminatedPlayer.illuminated = illuminatedStatus;
     if(illuminatedPlayer.illuminated) {
         if(illuminatedPlayer.isGhost && socket.id !== illuminatedPlayer.socketID) {
-            illuminatedPlayer.visible = true;
-            setTimeout(function() {illuminatedPlayer.visible = false},2000);
+            illuminatedPlayer.material.visible = true;
+            setTimeout(function() {illuminatedPlayer.material.visible = false},2000);
         }
         illuminatedPlayer.material.color.set('#fcba03');
     }
@@ -130,7 +125,7 @@ socket.on('selected ghost', socketID => {
     //Hide ghost (only if you aren't the ghost)
     if(socket.id !== ghost.socketID) { //If you aren't the ghost
         setTimeout(function() {
-            ghost.visible = false;
+            ghost.material.visible = false;
         }, 5000)
     }
 })

@@ -178,9 +178,12 @@ io.on('connection', socket => {
         io.to(selectedRoom.roomID).emit('player rotation', socketID, newAngle);
     });
 
-    socket.on('player illuminated', (socketID, illuminatedStatus)=> {
-        console.log(`socket: ${socketID}`)
-        illuminatedPlayer = playerList.find(obj=>obj.socketID==socketID);
+    socket.on('player illuminated', (roomID, socketID, illuminatedStatus)=> {
+        console.log(`PLAYER ILLUMINATED. socket: ${socketID}`)
+
+        selectedRoom = roomList.find(obj=>obj.roomID == roomID);
+        illuminatedPlayer = selectedRoom.playerList.find(obj=>obj.socketID==socketID);
+        //console.log(illuminatedPlayer)
         selectedRoom = roomList.find(room => room.roomID == illuminatedPlayer.roomID);
 
         if(illuminatedPlayer.illuminated == false) {
@@ -242,6 +245,7 @@ io.on('connection', socket => {
 setInterval(serverIntermittentFunctions.printRoomsStatus, 2000, roomList);
 setInterval(serverIntermittentFunctions.addAiAgentIfNeeded, 500, roomList, playerList, io, aiStateList);
 setInterval(serverIntermittentFunctions.startGameIfNeeded, 500, roomList, io);
+//setInterval(serverIntermittentFunctions.endGameIfNeeded, 5000, roomList, io);
 setInterval(serverIntermittentFunctions.calculateAiStates, 100, playerList, io, aiStateList);
 
 server.listen(server_constants.server_settings.PORT, "0.0.0.0", ()=> {

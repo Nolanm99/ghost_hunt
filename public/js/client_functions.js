@@ -16,6 +16,8 @@ function selfCreatePlayer() {
             importedCube.socketID = socket.id;
             importedCube.flashlightBattery = 100;
             importedCube.healthLevel = 100;
+            importedCube.position.x = 0;
+            importedCube.position.y = 0;
             collisionSphere = new THREE.Sphere(importedCube.position, SPHERE_RADIUS);
             collisionSphere.socketID = socket.id;
             playerCollisionSpheres.push(collisionSphere);
@@ -56,6 +58,9 @@ function createOtherPlayer(connectionID, color, callback) {
         importedCube.socketID = connectionID;
         importedCube.flashlightBattery = 100;
         importedCube.healthLevel = 100;
+        importedCube.position.x = 0;
+        importedCube.position.y = 0;
+
         importedCone.socketID = connectionID;
         importedCone.visible = false;
         players.push(importedCube);

@@ -1,7 +1,7 @@
 function createAIPlayer(newAIPlayerID,callback) {
     color = '#'.concat(Math.floor(Math.random()*16777215).toString(16));
     loader.load(PLAYER_MODEL_FILE, function (gltf) {
-        modelMaterial = new THREE.MeshStandardMaterial( {'color': color} );
+        modelMaterial = new THREE.MeshPhongMaterial( {'color': color} );
         gltf.scene.traverse((o) => {
             if (o.name == 'Cube') importedCube = o;
             if (o.name == 'Cone') importedCone = o;
@@ -17,8 +17,11 @@ function createAIPlayer(newAIPlayerID,callback) {
         importedCube.flashlightBattery = 100;
         importedCube.healthLevel = 100;
 
-        importedCube.xMovment = false;
-        importedCube.yMovment = false;
+        importedCube.xMovment = 0;
+        importedCube.yMovment = 0;
+
+        importedCube.position.x = 0;
+        importedCube.position.y = 0;
 
         importedCone.position.z = PLAYER_HEIGHT;
         importedCone.socketID = newAIPlayerID;

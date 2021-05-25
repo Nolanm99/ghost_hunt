@@ -28,6 +28,8 @@ function animate() {
 
     selfPlayer = players.find(obj=>obj.socketID==socket.id);
     selfFlashLight = playersFlashlights.find(obj=>obj.socketID==socket.id);
+
+
     
     if (selfPlayer && selfPlayer.movementLock == false) {
 
@@ -36,13 +38,15 @@ function animate() {
         selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
 
         //Update the ai agents according to their states
+        /*
         aiPlayers = players.filter(obj=> {return obj.socketID.search("ai_") != -1;});
         if(aiPlayers.length > 0) {
             aiPlayers.forEach(aiPlayer => {
                 aiPlayer.position.x += aiPlayer.xMovement*PLAYER_VELOCITY;
                 aiPlayer.position.y += aiPlayer.yMovement*PLAYER_VELOCITY;
-            })
+            }
         }
+        */
 
         if (window.Wpressed) {
             collisionPreCheck = checkWallIntersection(selfCollisionSphere)
@@ -145,14 +149,16 @@ function animate() {
                     playerDirection.set(Math.cos(selfPlayer.rotation.z), Math.sin(selfPlayer.rotation.z), 0);
                     playerLightRayCaster.set(selfPlayer.position, playerDirection);
                     intersects = playerLightRayCaster.intersectObjects(players);
+                    
                     intersects = intersects.filter(function (obj) {
                         return obj.distance <= FLASHLIGHT_LENGTH;
                     })
+                    
                     if (intersects.length) {
                         intersects.forEach((cube)=> {
-                            if(cube.object.socketID.isGhost) {
+                            if(cube.object.isGhost) {
                                 //send illuminate message only if the player is a ghost
-                                socket.emit('player illuminated', cube.object.socketID, true);
+                                socket.emit('player illuminated', roomID, cube.object.socketID, true);
                                 cube.object.material.color.set('#fcba03')
                                 cube.object.illuminatedStartTime = date.getTime();
                                 cube.object.illuminated = true;
