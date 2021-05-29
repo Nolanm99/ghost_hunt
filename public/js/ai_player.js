@@ -17,8 +17,12 @@ function createAIPlayer(newAIPlayerID,callback) {
         importedCube.flashlightBattery = 100;
         importedCube.healthLevel = 100;
 
-        importedCube.xMovment = 0;
-        importedCube.yMovment = 0;
+        importedCube.xMovement = 0;
+        importedCube.yMovement = 0;
+
+        collisionSphere = new THREE.Sphere(importedCube.position, SPHERE_RADIUS);
+        collisionSphere.socketID = newAIPlayerID;
+        playerCollisionSpheres.push(collisionSphere);
 
         importedCube.position.x = 0;
         importedCube.position.y = 0;

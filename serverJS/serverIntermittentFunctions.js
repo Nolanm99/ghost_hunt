@@ -37,22 +37,26 @@ module.exports = {
         if(playerList.length > 0) {
             
             aiPlayerList = playerList.filter(obj=> {return obj.socketID.search("ai_") != -1;})
-            //
             aiPlayerList.forEach(aiPlayer => {
                 //find the state for this player
                 selectedAiState = aiStateList.find(obj=>obj.socketID == aiPlayer.socketID);
                 if(selectedAiState) {
-                    //if ghost, do this
                     if(aiPlayer.isGhost) {
 
                     }
 
 
-                    //otherwise, do this
                     else {
-                        //CHANGE AI STATE (NEW SOCKET MESSAGES FOR AI STATES)
-                        //selectedAiState.xMovement = 1;
-                        io.to(aiPlayer.roomID).emit('new ai state', aiPlayer.socketID, selectedAiState);
+                        //CHANGE AI STATE. Send socket message only if ai state is updated.
+                        newXState = 1;
+                        newYState = 1;
+                        if(newXState !== selectedAiState.xMovement || newYState !== selectedAiState.yMovement) {
+                            selectedAiState.xMovement = newXState;
+                            selectedAiState.yMovement = newYState;
+                            io.to(aiPlayer.roomID).emit('new ai state', aiPlayer.socketID, selectedAiState);
+                        }
+                        selectedAiState.xMovement = 1;
+                        
                     }
                 }    
             })

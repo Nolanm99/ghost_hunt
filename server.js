@@ -136,8 +136,15 @@ io.on('connection', socket => {
 
         //Send player movement data to players in the same room
         socket.to(selectedRoom.roomID).emit('player movement', connectionID, selectedPlayer.Xposition, selectedPlayer.Yposition);
-
     });
+
+    socket.on('ai position update', (socketID, position) => {
+        selectedPlayer = playerList.find(obj=>obj.socketID==socketID);
+        if(typeof selectedPlayer !== 'underfined') {
+            selectedPlayer.Xposition = position.x;
+            selectedPlayer.Yposition = position.y;
+        }
+    })
 
     socket.on('player flashlight on', (socketID)=> {
         selectedPlayer = playerList.find(obj=>obj.socketID==socketID);

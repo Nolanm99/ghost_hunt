@@ -37,16 +37,30 @@ function animate() {
         selfCollisionSphere = playerCollisionSpheres.find(obj=>obj.socketID==socket.id);
         selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
 
-        //Update the ai agents according to their states
-        /*
+        //Update the ai agents according to their states        
         aiPlayers = players.filter(obj=> {return obj.socketID.search("ai_") != -1;});
         if(aiPlayers.length > 0) {
             aiPlayers.forEach(aiPlayer => {
-                aiPlayer.position.x += aiPlayer.xMovement*PLAYER_VELOCITY;
-                aiPlayer.position.y += aiPlayer.yMovement*PLAYER_VELOCITY;
-            }
+                aiCollisionSphere = playerCollisionSpheres.find(obj=>obj.socketID==aiPlayer.socketID);
+                collisionPreCheck = checkWallIntersection(aiCollisionSphere);
+                if(!collisionPreCheck) {
+                    aiPlayer.position.x += aiPlayer.xMovement*PLAYER_VELOCITY;
+                    collisionPostCheck = checkWallIntersection(aiCollisionSphere);
+                    if(collisionPostCheck) {
+                        aiPlayer.position.x -= aiPlayer.xMovement*PLAYER_VELOCITY;
+                    }
+
+                    aiPlayer.position.y += aiPlayer.yMovement*PLAYER_VELOCITY;
+                    collisionPostCheck = checkWallIntersection(aiCollisionSphere);
+                    if(collisionPostCheck) {
+                        aiPlayer.position.y -= aiPlayer.xMovement*PLAYER_VELOCITY;
+                    }
+
+                    socket.emit('ai position update', aiPlayer.socketID, aiPlayer.position); 
+                }
+            })
         }
-        */
+
 
         if (window.Wpressed) {
             collisionPreCheck = checkWallIntersection(selfCollisionSphere)
