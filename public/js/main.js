@@ -37,6 +37,14 @@ function animate() {
         selfCollisionSphere = playerCollisionSpheres.find(obj=>obj.socketID==socket.id);
         selfCollisionSphere.center.set(selfPlayer.position.x,selfPlayer.position.y,selfPlayer.position.z)
 
+        //If player is not ghost, get distance to nearest ghost
+        if(!selfPlayer.isGhost && gameStarted) {
+            selectedGhost = players.find(obj=>obj.isGhost==true);
+            distanceFromPlayer = Math.sqrt( Math.pow(selectedGhost.position.x - selfPlayer.position.x,2) + Math.pow(selectedGhost.position.y - selfPlayer.position.y,2) );
+            if(debugMode) {distanceToGhostOverlay.innerText = Math.round(distanceFromPlayer).toString()};
+        }
+
+
         //Update the ai agents according to their states        
         aiPlayers = players.filter(obj=> {return obj.socketID.search("ai_") != -1;});
         if(aiPlayers.length > 0) {

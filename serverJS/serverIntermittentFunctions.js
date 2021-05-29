@@ -42,21 +42,22 @@ module.exports = {
                 selectedAiState = aiStateList.find(obj=>obj.socketID == aiPlayer.socketID);
                 if(selectedAiState) {
                     if(aiPlayer.isGhost) {
+                        //How should a ghost behave
+
 
                     }
 
 
                     else {
-                        //CHANGE AI STATE. Send socket message only if ai state is updated.
-                        newXState = 1;
-                        newYState = 1;
+                        //How should a seeker behave
+                        newXState = 0;
+                        newYState = 0;
+
                         if(newXState !== selectedAiState.xMovement || newYState !== selectedAiState.yMovement) {
                             selectedAiState.xMovement = newXState;
                             selectedAiState.yMovement = newYState;
                             io.to(aiPlayer.roomID).emit('new ai state', aiPlayer.socketID, selectedAiState);
                         }
-                        selectedAiState.xMovement = 1;
-                        
                     }
                 }    
             })
@@ -68,6 +69,8 @@ module.exports = {
             timeDelta = (Date.now() - room.timeCreated) / 1000;
             humanPlayerList = room.playerList.filter(obj=> {return obj.socketID.search("ai_") == -1;})
 
+            //console.log(`players: ${room.playerList.length}`)
+            //console.log(`timedelta: ${timeDelta}`)
             if(room.playerList.length < room.MAX_PLAYERS && timeDelta > 5 && humanPlayerList.length > 0) {
                 //fill the room
                 playerDelta = room.MAX_PLAYERS - room.playerList.length;
@@ -117,16 +120,19 @@ module.exports = {
             }
         })
     },
-    endGameIfNeeded: function(roomList, io) {
+    endGameIfNeeded: function() {
         roomList.forEach(room=> {
             humansInRoom = room.playerList.filter(obj=> {return obj.socketID.search("ai_") == -1;});
             aiPlayersInRoom = room.playerList.filter(obj=> {return obj.socketID.search("ai_") !== -1;});
             if(aiPlayersInRoom.length > 0 && humansInRoom.length == 0) {
-                console.log(`Removing room: ${room.roomID}`);
+                console.log(roomList);
                 roomList = roomList.filter(obj => {
                     return obj.roomID != room.roomID;
                 });
+                console.log(roomList);
             }
         })
+        console.log('returning room list:', roomList)
+        //return roomList
     } 
 }

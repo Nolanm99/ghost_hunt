@@ -29,6 +29,7 @@ class Room {
         this.roomID = id;
         this.roomStatus = 0; //0:PREGAME LOBBY, 1:IN GAME, 2: GAME OVER
         this.timeCreated = Date.now();
+        this.deactivated = false;
     }
 }
 

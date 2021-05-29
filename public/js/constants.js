@@ -9,6 +9,7 @@ const MAP_MODEL_FILE = "/public/assets/maps/map_v0.5.glb";
 
 const siteMenu = document.getElementById('site-menu');
 const messageOverlay = document.getElementById('overlay_message');
+const distanceToGhostOverlay = document.getElementById('dist_to_ghost');
 const roomInfo = document.getElementById('room_info');
 
 const flashLightBatteryElement = document.getElementById('flashLightStatusCard');
