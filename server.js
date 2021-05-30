@@ -210,10 +210,10 @@ io.on('connection', socket => {
             }
 
 
-            io.emit('player illuminated', socketID, illuminatedStatus);
+            io.to(illuminatedPlayer.roomID).emit('player illuminated', socketID, illuminatedStatus);
             setTimeout(function() {
                 illuminatedPlayer.illuminated = false;
-                io.emit('player illuminated', socketID, false);
+                io.to(illuminatedPlayer.roomID).emit('player illuminated', socketID, false);
             }, 2000); //flip back color after 1 seconds
         }
     });
