@@ -340,8 +340,8 @@ function startGameIfNeeded() {
 
             //Send the new positions 0.2 seconds later
             setTimeout(function() {
-                room.playerList.forEach(player => {
-                    io.to(room.roomID).emit('player movement', player.socketID, player.Xposition, player.Yposition);
+                room.playerList.forEach(playerSelectedForNewPostion => {
+                    io.to(room.roomID).emit('player movement', playerSelectedForNewPostion.socketID, playerSelectedForNewPostion.Xposition, playerSelectedForNewPostion.Yposition);
                 })
             }, 200);
 

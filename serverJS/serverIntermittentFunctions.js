@@ -108,7 +108,7 @@ module.exports = {
                     room.playerList.forEach(player => {
                         io.to(room.roomID).emit('player movement', player.socketID, player.Xposition, player.Yposition);
                     })
-                }, 200);
+                }, 500);
     
                 //Select a ghost character (human players only)
                 humanPlayerList = room.playerList.filter(obj=> {return obj.socketID.search("ai_") == -1;})

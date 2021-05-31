@@ -26,7 +26,7 @@ socket.on('player sync', (serverPlayerList)=> {
 })
 
 socket.on('player movement', (connectionID, Xposition, Yposition)=> {
-    //console.log('received player movement',Xposition, Yposition)
+    console.log('received player movement',connectionID, Xposition, Yposition)
     player = players.find(obj=>obj.socketID==connectionID);
     flashlight = playersFlashlights.find(obj=>obj.socketID==connectionID);
     player.position.x = Xposition;
