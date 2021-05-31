@@ -26,7 +26,6 @@ socket.on('player sync', (serverPlayerList)=> {
 })
 
 socket.on('player movement', (connectionID, Xposition, Yposition)=> {
-    console.log('received player movement',connectionID, Xposition, Yposition)
     player = players.find(obj=>obj.socketID==connectionID);
     flashlight = playersFlashlights.find(obj=>obj.socketID==connectionID);
     player.position.x = Xposition;
@@ -104,6 +103,11 @@ socket.on('game started', roomStatus => {
     players.forEach(player => {
         player.movementLock = true;
     })
+
+    camera.position.x = cameraOriginalPos.x;
+    camera.position.y = cameraOriginalPos.y;
+    camera.position.z = cameraOriginalPos.z;
+
     messageOverlay.innerText = "Starting in 5 seconds!";
     setTimeout(function() {
         players.forEach(player => {

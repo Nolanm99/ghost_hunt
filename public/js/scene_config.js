@@ -88,16 +88,17 @@ function loadMap(callback) {
 
 
 //LIGHTING
-const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.3);
+const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5);
 const directionalLight = new THREE.SpotLight(0xFFFFFF,0.7, 5000);
-directionalLight.position.set(100,0,150);
+directionalLight.position.set(250,0,150);
 directionalLight.castShadow = true;
 directionalLight.shadow.mapSize.width = 512;
 directionalLight.shadow.mapSize.height = 512;
 
 //CAMERA
-var raycaster = new THREE.Raycaster();  
-camera.position.z = 100;
-camera.position.y = -20;
-camera.position.x = 0;
+var raycaster = new THREE.Raycaster();
+var cameraOriginalPos = new THREE.Vector3(0,-20,100);
+camera.position.x = cameraOriginalPos.x;
+camera.position.y = cameraOriginalPos.y;
+camera.position.z = cameraOriginalPos.z;
 camera.lookAt(0,0,0);

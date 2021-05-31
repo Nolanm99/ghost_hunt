@@ -5,7 +5,7 @@ const leaveGameBtn = document.getElementById('leaveGameBtn');
 
 //ASSETS
 const PLAYER_MODEL_FILE = "/public/assets/box_v1.2_scaled_down.glb";
-const MAP_MODEL_FILE = "/public/assets/maps/map_v0.5.glb";
+const MAP_MODEL_FILE = "/public/assets/maps/map_v0.6.glb";
 
 const siteMenu = document.getElementById('site-menu');
 const messageOverlay = document.getElementById('overlay_message');

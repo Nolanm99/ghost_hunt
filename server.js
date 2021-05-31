@@ -1,19 +1,26 @@
+//External
 const express = require('express');
 const path = require('path');
-const app = express();
 const http = require('http');
-const socketio = require('socket.io');
-const server = http.createServer(app);
-const io = socketio(server)
-const authRoutes = require('./routes/auth-routes');
-const profileRoutes = require('./routes/profile-routes');
-const passportSetup = require('./config/passport-setup');
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 const cookieSession = require('cookie-session');
 const passport = require('passport');
+const socketio = require('socket.io');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketio(server)
+
+const authRoutes = require('./routes/auth-routes');
+const profileRoutes = require('./routes/profile-routes');
+const adminRoutes = require('./routes/admin-routes');
+
+
+const passportSetup = require('./config/passport-setup');
 const keys = require('./config/keys');
 const server_constants = require('./serverJS/server_constants.js');
-const crypto = require('crypto');
+
 
 
 //Load dependencies
@@ -42,6 +49,7 @@ mongoose.connect(keys.mongodb.dbURL, () => {
 
 app.use('/auth',authRoutes);
 app.use('/profile',profileRoutes);
+app.use('/admin',adminRoutes);
 
 app.get('/', (req,res) => {
     res.render('home', {user: req.user});
@@ -60,7 +68,7 @@ roomList.push(new serverClasses.Room(crypto.randomBytes(15).toString('hex')));
 io.on('connection', socket => {
     console.log('New Connection: ', socket.id);
     connectionList.push(new serverClasses.Connection(socket.id));
-    console.log('Current Connections: ', connectionList);
+    //console.log(socket.handshake.address);
 
     //When someone hits the new player button
     socket.on('new player', (connectionID, color)=> {
