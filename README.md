@@ -5,6 +5,8 @@ Players will need to use their flashlights to find the one player who has been t
 
 Using the keyboard and mouse, the "seekers" will search the room to find the ghost, who will lose some HP each time they are illuminated.
 
+![alt text](https://i.imgur.com/YwytJIJ.mp4)
+
 # Technologies Used:
 Nodejs
 
